@@ -25,4 +25,7 @@ classifiers = [
     "Framework :: Django",
 ]
 dynamic = ["version"]
-dependencies = ["django"]
+dependencies = [
+    "django",
+    "python-decouple",
+    ]
