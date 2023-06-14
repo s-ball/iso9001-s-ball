@@ -1,0 +1,12 @@
+[MAIN]
+ignore=migrations,settings.py,apps.py,manage.py
+
+[MESSAGES CONTROL]
+enable=c-extension-no-member,
+       wrong-spelling-in-comment,
+       wrong-spelling-in-docstring,
+       invalid-characters-in-docstring
+
+[SPELLING]
+spelling-dict=en_US
+spelling-private-dict-file=private-dictionary.txt

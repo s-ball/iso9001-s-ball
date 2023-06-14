@@ -1,0 +1,28 @@
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+fallback-version = "0.1.0"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "iso9001/version.py"
+
+[project]
+name = "iso9001-s-ball"
+authors = [
+    {name = "SBA", email = "s-ball@laposte.net"}
+]
+description = "A iso9001 QMS support webapp"
+readme = "README.md"
+requires-python = ">= 3.8"
+license = {text = "MIT"}
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Operating System :: OS Independent",
+    "Development Status :: 2 - Pre-Alpha",
+    "Framework :: Django",
+]
+dynamic = ["version"]
+dependencies = ["django"]
