@@ -26,6 +26,30 @@ class StatusModel(models.Model):
     start_date = models.DateField(default=datetime.date.today)
     end_date = models.DateField(null=True, blank=True)
 
+    def retire(self, end_date: datetime.date = None) -> None:
+        """Pass a model to the retired state"""
+        if end_date is None:
+            end_date = datetime.date.today()
+        self.status = StatusModel.Status.RETIRED
+        self.end_date = end_date
+        self.save()
+
+    def build_draft(self) -> "StatusModel":
+        """Builds a draft copy of self
+        (expected to be overridden in subclasses)
+        """
+        raise NotImplementedError()
+
+    def make_applicable(self) -> None:
+        """Pass a draft into applicable state"""
+        # search for a previous version
+        # pylint: disable=no-member
+        prevs = self.__class__.objects.filter(
+            name=self.name, status=StatusModel.Status.APPLICABLE)
+        if prevs:
+            prevs[0].retire()
+        self.status = StatusModel.Status.APPLICABLE
+
     class Meta:
         abstract = True
         constraints = [models.UniqueConstraint(
@@ -43,6 +67,11 @@ class Process(StatusModel):
     desc = models.TextField()
     pilots = models.ManyToManyField(to=User)
 
+    def build_draft(self) -> "Process":
+        draft = Process.objects.create(name=self.name, desc=self.desc)
+        draft.pilots.set(self.pilots.all())
+        return draft
+
     def __str__(self):
         return str(self.name)
 
@@ -58,6 +87,14 @@ class PolicyAxis(StatusModel):
     long_desc = models.TextField()
     reviewed = models.DateField(default=timezone.now)
     processes = models.ManyToManyField(to=Process, through="Contribution")
+
+    def build_draft(self) -> "PolicyAxis":
+        draft = PolicyAxis.objects.create(name=self.name,
+                                          desc=self.desc,
+                                          long_desc=self.long_desc,
+                                          reviewed=self.reviewed)
+        draft.processes.set(self.processes.all())
+        return draft
 
     def __str__(self):
         return f'{self.name} : {self.desc}'
