@@ -91,7 +91,6 @@ class TestAxes(TestCase):
         draft = self.axis1.build_draft()
         self.assertEqual(StatusModel.Status.DRAFT, draft.status)
         self.assertIn(self.proc, draft.processes.all())
-        
 
 
 class TestStatus(TestCase):
