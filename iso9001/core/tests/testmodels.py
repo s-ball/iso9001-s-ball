@@ -2,7 +2,7 @@
 
 from django.contrib.auth.models import Permission
 from django.test import TestCase
-from core.models import Process, User
+from core.models import Process, User, PolicyAxis, Contribution
 
 
 # Create your tests here.
@@ -30,3 +30,22 @@ class TestProcess(TestCase):
         proc.pilots.add(self.user1)
         proc.save()
         self.assertTrue(proc in self.user1.process_set.all())
+
+
+class TestAxes(TestCase):
+    """Tests for the PolicyAxis and Contribution models"""
+    @classmethod
+    def setUpTestData(cls) -> None:
+        """Install 1 process and 2 axes"""
+        cls.proc = Process.objects.create(name='P1',
+                                          desc='Produce something')
+        cls.axis1 = PolicyAxis.objects.create(name='A1',
+                                              desc='Axis 1')
+        cls.axis2 = PolicyAxis.objects.create(name='A2',
+                                              desc='Axis 2')
+
+    def test_default(self) -> None:
+        """Controls that adding a new axe sets a minor contribution"""
+        self.axis1.processes.add(self.proc)
+        contrib = Contribution.objects.get(process=self.proc, axis=self.axis1)
+        self.assertEqual(Contribution.Importance.MINOR, contrib.importance)

@@ -2,10 +2,12 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
+
 from django.db import models
 from django.db.models import Q, F
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
 
 
 # Ensure using the current User model
@@ -46,5 +48,32 @@ class Process(StatusModel):
 
     class Meta(StatusModel.Meta):
         verbose_name = _('Process')
-        verbose_name_plural = _('Process')
+        verbose_name_plural = _('Processes')
         permissions = [('is_qm', _('Quality manager'))]
+
+
+class PolicyAxis(StatusModel):
+    name = models.SlugField(max_length=4)
+    desc = models.CharField(max_length=64)
+    long_desc = models.TextField()
+    reviewed = models.DateField(default=timezone.now)
+    processes = models.ManyToManyField(to=Process, through="Contribution")
+
+    def __str__(self):
+        return f'{self.name} : {self.desc}'
+
+    class Meta:
+        verbose_name = _('Quality policy axis')
+        verbose_name_plural = _('Quality policy axes')
+
+
+class Contribution(models.Model):
+    class Importance(models.TextChoices):
+        MINOR = 'x', _('Minor')
+        MAJOR = 'X', _('Major')
+
+    process = models.ForeignKey(Process, on_delete=models.CASCADE)
+    axis = models.ForeignKey(PolicyAxis, on_delete=models.CASCADE)
+    importance = models.CharField(choices=Importance.choices,
+                                  default=Importance.MINOR,
+                                  max_length=1)
