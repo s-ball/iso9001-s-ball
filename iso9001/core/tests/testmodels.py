@@ -1,7 +1,8 @@
 """Models tests"""
 
-from django.contrib.auth.models import User, Permission
+from django.contrib.auth.models import Permission
 from django.test import TestCase
+from core.models import Process, User
 
 
 # Create your tests here.
@@ -21,3 +22,11 @@ class TestProcess(TestCase):
         """Controls permission assignment"""
         self.assertTrue(self.qm.has_perm('core.is_qm'))
         self.assertFalse(self.user1.has_perm('core.is_qm'))
+
+    def test_pilot(self) -> None:
+        """Try to setup a process and a pilot"""
+        proc = Process.objects.create(name='P1',
+                                      desc='Produce something')
+        proc.pilots.add(self.user1)
+        proc.save()
+        self.assertTrue(proc in self.user1.process_set.all())

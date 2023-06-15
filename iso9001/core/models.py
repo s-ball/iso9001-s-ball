@@ -4,8 +4,12 @@
 import datetime
 from django.db import models
 from django.db.models import Q, F
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+
+
+# Ensure using the current User model
+User = get_user_model()
 
 
 # Create your models here.
