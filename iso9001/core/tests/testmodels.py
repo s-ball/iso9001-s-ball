@@ -65,6 +65,12 @@ class TestProcess(TestCase):
         self.assertEqual(StatusModel.Status.RETIRED, proc.status)
         self.assertEqual(StatusModel.Status.APPLICABLE, draft.status)
 
+    def test_str(self) -> None:
+        """Test __str__ special method"""
+        proc = Process.objects.create(name='P1',
+                                      desc='Produce something')
+        self.assertEqual("P1", str(proc))
+
 
 class TestAxes(TestCase):
     """Tests for the PolicyAxis and Contribution models"""
@@ -91,6 +97,10 @@ class TestAxes(TestCase):
         draft = self.axis1.build_draft()
         self.assertEqual(StatusModel.Status.DRAFT, draft.status)
         self.assertIn(self.proc, draft.processes.all())
+
+    def test_str(self) -> None:
+        """Test __str__ special method"""
+        self.assertEqual('A1 : Axis 1', str(self.axis1))
 
 
 class TestStatus(TestCase):
