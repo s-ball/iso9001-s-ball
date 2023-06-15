@@ -1,5 +1,6 @@
 [MAIN]
 ignore=migrations,settings.py,apps.py,manage.py
+load-plugins=pylint_django
 
 [MESSAGES CONTROL]
 enable=c-extension-no-member,
@@ -10,3 +11,8 @@ enable=c-extension-no-member,
 [SPELLING]
 spelling-dict=en_US
 spelling-private-dict-file=private-dictionary.txt
+
+[DJANGO FOREIGN KEYS REFERENCED BY STRINGS]
+
+# A module containing Django settings to be used while linting.
+django-settings-module=iso9001.settings
