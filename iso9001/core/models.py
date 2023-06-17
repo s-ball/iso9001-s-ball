@@ -2,13 +2,15 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
+from typing import Collection
 
 from django.db import models
 from django.db.models import Q, F
 from django.contrib.auth import get_user_model
+from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-
+from django.core.exceptions import NON_FIELD_ERRORS
 
 # Ensure using the current User model
 User = get_user_model()
@@ -49,6 +51,44 @@ class StatusModel(models.Model):
         if prevs:
             prevs[0].retire()
         self.status = StatusModel.Status.APPLICABLE
+
+    def clean_fields(self, exclude: Collection[str] | None = ...) -> None:
+        """status field should not be changed in a form"""
+        errors = {}
+        # do super validation
+        try:
+            super().clean_fields(exclude)
+        except ValidationError as err:
+            errors = err.update_error_dict(errors)
+        # extract original status is any
+        prev: StatusModel = self.__class__.objects.get(pk=self.pk)
+        if prev:
+            if prev.status != self.status:
+                errors['status'] = _('Status cannot be changed')
+        elif self.status != StatusModel.Status.DRAFT:
+            errors['status'] = _('Objects can only be created as draft')
+
+        if errors:
+            raise ValidationError(errors)
+
+    def clean(self) -> None:
+        # applicable objects should not be changed by normal forms
+        errors = {}
+        # first do super validation
+        try:
+            super().clean()
+        except ValidationError as err:
+            err.update_error_dict(errors)
+        # test status
+        if self.status != StatusModel.Status.DRAFT:
+            if NON_FIELD_ERRORS in errors:
+                errors[NON_FIELD_ERRORS].append(
+                    _('Only draft objects can change'))
+            else:
+                errors[NON_FIELD_ERRORS] = _('Only draft objects can change')
+
+        if errors:
+            raise ValidationError(errors)
 
     class Meta:
         abstract = True

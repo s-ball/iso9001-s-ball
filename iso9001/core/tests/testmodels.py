@@ -1,7 +1,9 @@
 """Models tests"""
+import datetime
 
 from django.contrib.auth.models import Permission
 from django.db import IntegrityError
+from django.forms import ValidationError
 from django.test import TestCase
 from core.models import Process, User, PolicyAxis, Contribution, StatusModel
 
@@ -130,3 +132,55 @@ class TestStatus(TestCase):
         p21 = Process.objects.create(name='P2', desc='Produce nothing',
                                      status=StatusModel.Status.APPLICABLE)
         self.assertNotEqual(p21.pk, self.p2.pk)
+
+
+class TestChanges(TestCase):
+    """Tests when a model can be changed"""
+    @classmethod
+    def setUpTestData(cls) -> None:
+        """Initialize one process as DRAFT and one as APPLICABLE"""
+        cls.p1 = Process.objects.create(name='P1', desc='Produce something')
+        cls.p2 = Process.objects.create(name='P2', desc='Produce nothing',
+                                        status=StatusModel.Status.APPLICABLE)
+
+    def test_draft_change(self) -> None:
+        """Ensures that a draft process can be changed"""
+        self.p1.desc = 'Change another thing'
+        self.p1.full_clean()
+
+    def test_status_change(self) -> None:
+        """Status can never change"""
+        self.p1.status = "2"
+        with self.assertRaises(ValidationError):
+            self.p1.full_clean()
+
+    def test_applicable_change(self):
+        """An applicable model cannot be changed"""
+        self.p2.desc = 'Change another thing'
+        with self.assertRaises(ValidationError):
+            self.p2.full_clean()
+
+    def test_date_constraint(self):
+        """end_date must be greater that start_date"""
+        self.p1.end_date = self.p1.start_date - datetime.timedelta(days=1)
+        with self.assertRaises(ValidationError):
+            self.p1.full_clean()
+        with self.assertRaises(IntegrityError):
+            self.p1.save()
+
+
+# pylint: disable=import-outside-toplevel
+# pylint: disable=abstract-method
+class Incorrect(StatusModel):
+    """A subclass of StatusModel not overriding build_class"""
+    from django.db import models
+    name = models.CharField(max_length=16, null=True)
+
+
+class TestNotOverriddenBuildDraft(TestCase):
+    """Test calling the non overridden build_class"""
+    def test_instance(self) -> None:
+        """Actual test"""
+        instance = Incorrect()
+        with self.assertRaises(NotImplementedError):
+            instance.build_draft()
