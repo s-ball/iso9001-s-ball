@@ -12,6 +12,8 @@ from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import NON_FIELD_ERRORS
 
+from concurrency.fields import AutoIncVersionField
+
 # Ensure using the current User model
 User = get_user_model()
 
@@ -27,6 +29,8 @@ class StatusModel(models.Model):
                                       default=Status.DRAFT)
     start_date = models.DateField(default=datetime.date.today)
     end_date = models.DateField(null=True, blank=True)
+    # for django-concurrency optimistic locking
+    version = AutoIncVersionField()
 
     def retire(self, end_date: datetime.date = None) -> None:
         """Pass a model to the retired state"""

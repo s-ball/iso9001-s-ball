@@ -7,6 +7,8 @@ from django.forms import ValidationError
 from django.test import TestCase
 from core.models import Process, User, PolicyAxis, Contribution, StatusModel
 
+from concurrency.exceptions import RecordModifiedError
+
 
 # Create your tests here.
 class TestProcess(TestCase):
@@ -184,3 +186,26 @@ class TestNotOverriddenBuildDraft(TestCase):
         instance = Incorrect()
         with self.assertRaises(NotImplementedError):
             instance.build_draft()
+
+
+class TestOptimisticLocking(TestCase):
+    """Tests for version fields"""
+    @classmethod
+    def setUpTestData(cls) -> None:
+        """Install 1 process"""
+        cls.proc = Process.objects.create(name='P1',
+                                          desc='Produce something')
+
+    def test_version_inc(self) -> None:
+        """Ensure that version number is increasing"""
+        self.proc.desc = 'Something else'
+        old_version = self.proc.version
+        self.proc.save()
+        self.assertEqual(old_version + 1, self.proc.version)
+
+    def test_conflict(self) -> None:
+        """Generate a conflict"""
+        alt = Process.objects.get(pk=self.proc.pk)
+        alt.save()
+        with self.assertRaises(RecordModifiedError):
+            self.proc.save()
