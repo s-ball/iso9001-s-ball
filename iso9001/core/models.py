@@ -10,7 +10,7 @@ from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.core.exceptions import NON_FIELD_ERRORS
+from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
 
 from concurrency.fields import AutoIncVersionField
 
@@ -65,7 +65,10 @@ class StatusModel(models.Model):
         except ValidationError as err:
             errors = err.update_error_dict(errors)
         # extract original status is any
-        prev: StatusModel = self.__class__.objects.get(pk=self.pk)
+        try:
+            prev: StatusModel = self.__class__.objects.get(pk=self.pk)
+        except ObjectDoesNotExist:
+            prev = None
         if prev:
             if prev.status != self.status:
                 errors['status'] = _('Status cannot be changed')
@@ -84,7 +87,7 @@ class StatusModel(models.Model):
         except ValidationError as err:
             err.update_error_dict(errors)
         # test status
-        if self.status != StatusModel.Status.DRAFT:
+        if self.status != StatusModel.Status.DRAFT and 'status' not in errors:
             if NON_FIELD_ERRORS in errors:
                 errors[NON_FIELD_ERRORS].append(
                     _('Only draft objects can change'))
@@ -143,7 +146,7 @@ class PolicyAxis(StatusModel):
     def __str__(self):
         return f'{self.name} : {self.desc}'
 
-    class Meta:
+    class Meta(StatusModel.Meta):
         verbose_name = _('Quality policy axis')
         verbose_name_plural = _('Quality policy axes')
 
