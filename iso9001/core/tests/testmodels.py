@@ -5,9 +5,9 @@ from django.contrib.auth.models import Permission
 from django.db import IntegrityError
 from django.forms import ValidationError
 from django.test import TestCase
-from core.models import Process, User, PolicyAxis, Contribution, StatusModel
-
+from django.utils import timezone
 from concurrency.exceptions import RecordModifiedError
+from core.models import Process, User, PolicyAxis, Contribution, StatusModel
 
 
 # Create your tests here.
@@ -53,6 +53,7 @@ class TestProcess(TestCase):
         proc = Process.objects.create(name='P1',
                                       desc='Produce something')
         proc.make_applicable()
+        proc.refresh_from_db()
         self.assertEqual(StatusModel.Status.APPLICABLE, proc.status)
 
     def test_applicable_new_version(self) -> None:
@@ -68,6 +69,25 @@ class TestProcess(TestCase):
         proc.refresh_from_db()
         self.assertEqual(StatusModel.Status.RETIRED, proc.status)
         self.assertEqual(StatusModel.Status.APPLICABLE, draft.status)
+
+    def test_already_applicable(self) -> None:
+        """Ensure calling make_applicable on a applicable obj raises"""
+        proc = Process.objects.create(name='P1',
+                                      desc='Produce something',
+                                      status=StatusModel.Status.APPLICABLE)
+        with self.assertRaises(ValueError):
+            proc.make_applicable()
+
+    def test_retired_to_applicable(self) -> None:
+        """Ensure that an applicable process has no end date"""
+        proc = Process.objects.create(name='P1',
+                                      desc='Produce something',
+                                      status=StatusModel.Status.RETIRED,
+                                      end_date=timezone.now())
+        proc.make_applicable()
+        proc.refresh_from_db()
+        self.assertIsNone(proc.end_date)
+        self.assertEqual(StatusModel.Status.APPLICABLE, proc.status)
 
     def test_str(self) -> None:
         """Test __str__ special method"""

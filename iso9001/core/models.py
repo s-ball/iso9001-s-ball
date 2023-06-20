@@ -34,6 +34,9 @@ class StatusModel(models.Model):
 
     def retire(self, end_date: datetime.date = None) -> None:
         """Pass a model to the retired state"""
+        if self.status != StatusModel.Status.APPLICABLE:
+            raise ValueError(_('{} is not in applicable status')
+                             .format(str(self)))
         if end_date is None:
             end_date = datetime.date.today()
         self.status = StatusModel.Status.RETIRED
@@ -50,11 +53,16 @@ class StatusModel(models.Model):
         """Pass a draft into applicable state"""
         # search for a previous version
         # pylint: disable=no-member
+        if self.status == StatusModel.Status.APPLICABLE:
+            raise ValueError(_('{} is already in applicable status')
+                             .format(str(self)))
         prevs = self.__class__.objects.filter(
             name=self.name, status=StatusModel.Status.APPLICABLE)
         if prevs:
             prevs[0].retire()
         self.status = StatusModel.Status.APPLICABLE
+        self.end_date = None
+        self.save()
 
     def clean_fields(self, exclude: Collection[str] | None = ...) -> None:
         """status field should not be changed in a form"""
@@ -117,6 +125,7 @@ class Process(StatusModel):
     def build_draft(self) -> "Process":
         draft = Process.objects.create(name=self.name, desc=self.desc)
         draft.pilots.set(self.pilots.all())
+        draft.save()
         return draft
 
     def __str__(self):
@@ -141,6 +150,7 @@ class PolicyAxis(StatusModel):
                                           long_desc=self.long_desc,
                                           reviewed=self.reviewed)
         draft.processes.set(self.processes.all())
+        draft.save()
         return draft
 
     def __str__(self):
@@ -161,3 +171,10 @@ class Contribution(models.Model):
     importance = models.CharField(choices=Importance.choices,
                                   default=Importance.MINOR,
                                   max_length=1)
+
+    def __str__(self):
+        return f'{self.process} -> {self.axis}'
+
+    class Meta:
+        verbose_name = _('Contribution')
+        verbose_name_plural = _('Contributions')

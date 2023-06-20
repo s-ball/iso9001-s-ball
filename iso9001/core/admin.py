@@ -1,9 +1,66 @@
 """Declare models for the admin site"""
 
-from django.contrib import admin
-
-from .models import Process, PolicyAxis
+from django.contrib import admin, messages
+from django.utils.translation import ngettext, gettext as _
+from .models import Process, PolicyAxis, StatusModel, Contribution
 
 
 # Register your models here.
-admin.site.register((Process, PolicyAxis))
+@admin.register(Process, PolicyAxis)
+class StatusModelAdmin(admin.ModelAdmin):
+    """ModelAdmin for StatusModel subclasses.
+
+    Provides actions to change the status through the model methods.
+    """
+    @admin.action(description=_("Make applicable"))
+    def make_applicable(self, request, queryset):
+        """Bump a bunch of objects into applicable status"""
+        obj: StatusModel
+        count = 0
+        for obj in queryset:
+            if obj.status != StatusModel.Status.APPLICABLE:
+                obj.make_applicable()
+                count += 1
+        self.message_user(request, ngettext(
+            '{count} object was made applicable',
+            '{count} objects were made applicable',
+            count
+            ).format(count=count),
+            messages.SUCCESS if count > 0 else messages.WARNING)
+
+    @admin.action(description=_("Create draft copies"))
+    def build_draft(self, request, queryset):
+        """Create draft copies"""
+        obj: StatusModel
+        count = 0
+        for obj in queryset:
+            obj.build_draft()
+            count += 1
+        self.message_user(request, ngettext(
+            '{count} draft object was created',
+            '{count} draft objects were created',
+            count
+            ).format(count=count),
+            messages.SUCCESS if count > 0 else messages.WARNING)
+
+    @admin.action(description=_("Retire"))
+    def retire(self, request, queryset):
+        """Take a bunch of objects into retired status"""
+        obj: StatusModel
+        count = 0
+        for obj in queryset:
+            if obj.status == StatusModel.Status.APPLICABLE:
+                obj.retire()
+                count += 1
+        self.message_user(request, ngettext(
+            '{count} object was retired',
+            '{count} objects were retired',
+            count
+            ).format(count=count),
+            messages.SUCCESS if count > 0 else messages.WARNING)
+
+    actions = ['make_applicable', 'build_draft', 'retire']
+    list_display = ['__str__', 'status', 'start_date', 'end_date']
+
+
+admin.site.register(Contribution)
