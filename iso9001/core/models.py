@@ -120,7 +120,7 @@ class StatusModel(models.Model):
 class Process(StatusModel):
     name = models.SlugField(max_length=8)
     desc = models.TextField()
-    pilots = models.ManyToManyField(to=User)
+    pilots = models.ManyToManyField(to=User, blank=True)
 
     def build_draft(self) -> "Process":
         draft = Process.objects.create(name=self.name, desc=self.desc)
@@ -142,7 +142,8 @@ class PolicyAxis(StatusModel):
     desc = models.CharField(max_length=64)
     long_desc = models.TextField()
     reviewed = models.DateField(default=timezone.now)
-    processes = models.ManyToManyField(to=Process, through="Contribution")
+    processes = models.ManyToManyField(to=Process, through="Contribution",
+                                       blank=True)
 
     def build_draft(self) -> "PolicyAxis":
         draft = PolicyAxis.objects.create(name=self.name,

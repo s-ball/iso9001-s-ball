@@ -155,6 +155,7 @@ class TestStatusModelAdmin(TestCase):
         client = Client()
         client.force_login(self.admin)
         self.p1.make_applicable()
+        self.p1.pilots.add(self.admin)
         resp = client.post('/admin/core/process/',
                            {'action': 'build_draft',
                             'select_across': '0',
@@ -178,4 +179,4 @@ class TestStatusModelAdmin(TestCase):
                                   ).text.startswith('1'))
         new = Process.objects.get(name='P1', status=StatusModel.Status.DRAFT)
         self.assertEqual(self.p1.desc, new.desc)
-        # self.assertEqual({self.admin}, set(new.pilots.all()))
+        self.assertEqual({self.admin}, set(new.pilots.all()))
