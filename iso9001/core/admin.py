@@ -21,6 +21,7 @@ class StatusModelAdmin(admin.ModelAdmin):
         for obj in queryset:
             if obj.status != StatusModel.Status.APPLICABLE:
                 obj.make_applicable()
+                self.log_change(request, obj, "made applicable")
                 count += 1
         self.message_user(request, ngettext(
             '{count} object was made applicable',
@@ -35,7 +36,8 @@ class StatusModelAdmin(admin.ModelAdmin):
         obj: StatusModel
         count = 0
         for obj in queryset:
-            obj.build_draft()
+            draft = obj.build_draft()
+            self.log_addition(request, draft, "created as draft")
             count += 1
         self.message_user(request, ngettext(
             '{count} draft object was created',
@@ -52,6 +54,7 @@ class StatusModelAdmin(admin.ModelAdmin):
         for obj in queryset:
             if obj.status == StatusModel.Status.APPLICABLE:
                 obj.retire()
+                self.log_change(request, obj, "retired")
                 count += 1
         self.message_user(request, ngettext(
             '{count} object was retired',
