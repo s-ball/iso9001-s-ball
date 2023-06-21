@@ -1,6 +1,7 @@
 """Declare models for the admin site"""
 
 from django.contrib import admin, messages
+from django.http.request import HttpRequest
 from django.utils.translation import ngettext, gettext as _
 from .models import Process, PolicyAxis, StatusModel, Contribution
 
@@ -12,7 +13,7 @@ class StatusModelAdmin(admin.ModelAdmin):
 
     Provides actions to change the status through the model methods.
     """
-    @admin.action(description=_("Make applicable"))
+    @admin.action(description=_("Make applicable"), permissions=['status'])
     def make_applicable(self, request, queryset):
         """Bump a bunch of objects into applicable status"""
         obj: StatusModel
@@ -28,7 +29,7 @@ class StatusModelAdmin(admin.ModelAdmin):
             ).format(count=count),
             messages.SUCCESS if count > 0 else messages.WARNING)
 
-    @admin.action(description=_("Create draft copies"))
+    @admin.action(description=_("Create draft copies"), permissions=['add'])
     def build_draft(self, request, queryset):
         """Create draft copies"""
         obj: StatusModel
@@ -43,7 +44,7 @@ class StatusModelAdmin(admin.ModelAdmin):
             ).format(count=count),
             messages.SUCCESS if count > 0 else messages.WARNING)
 
-    @admin.action(description=_("Retire"))
+    @admin.action(description=_("Retire"), permissions=['status'])
     def retire(self, request, queryset):
         """Take a bunch of objects into retired status"""
         obj: StatusModel
@@ -58,6 +59,11 @@ class StatusModelAdmin(admin.ModelAdmin):
             count
             ).format(count=count),
             messages.SUCCESS if count > 0 else messages.WARNING)
+
+    def has_status_permission(self, request: HttpRequest) -> bool:
+        """Only Quality Manager can change status of objects"""
+        user = request.user
+        return user.has_perm('core.is_qm')
 
     actions = ['make_applicable', 'build_draft', 'retire']
     list_display = ['__str__', 'status', 'start_date', 'end_date']

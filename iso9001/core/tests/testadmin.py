@@ -2,6 +2,7 @@
 
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
 from core.models import Process, StatusModel
 from bs4 import BeautifulSoup
 
@@ -180,3 +181,105 @@ class TestStatusModelAdmin(TestCase):
         new = Process.objects.get(name='P1', status=StatusModel.Status.DRAFT)
         self.assertEqual(self.p1.desc, new.desc)
         self.assertEqual({self.admin}, set(new.pilots.all()))
+
+    def test_add_permission_ko(self) -> None:
+        """Ensure add permission is required to build drafts"""
+        user1 = User.objects.create_user(username='user1', is_staff=True)
+        view_process = Permission.objects.get(
+            content_type__app_label='core',
+            content_type__model='process',
+            codename='view_process',
+        )
+        user1.user_permissions.add(view_process)
+        client = Client()
+        client.force_login(user1)
+        resp = client.post('/admin/core/process/',
+                           {'action': 'build_draft',
+                            'select_across': '0',
+                            'index': '0',
+                            '_selected_action': str(self.p1.pk)
+                            },
+                           follow=True)
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(1, len(Process.objects.filter(name=self.p1.name)))
+
+    def test_add_permission_ok(self) -> None:
+        """Ensure add permission is required to build drafts"""
+        user1 = User.objects.create_user(username='user1', is_staff=True)
+        add_process = Permission.objects.get(
+            content_type__app_label='core',
+            content_type__model='process',
+            codename='add_process',
+        )
+        view_process = Permission.objects.get(
+            content_type__app_label='core',
+            content_type__model='process',
+            codename='view_process',
+        )
+        user1.user_permissions.add(add_process, view_process)
+        user1.save()
+        user1.refresh_from_db()
+        self.assertTrue(user1.has_perm('core.add_process'))
+        client = Client()
+        client.force_login(user1)
+        resp = client.post('/admin/core/process/',
+                           {'action': 'build_draft',
+                            'select_across': '0',
+                            'index': '0',
+                            '_selected_action': str(self.p1.pk)
+                            },
+                           follow=True)
+        self.assertEqual(200, resp.status_code)
+        self.assertEqual(2, len(Process.objects.filter(name=self.p1.name)))
+
+    def test_status_permission_ko(self) -> None:
+        """Ensure is_qm permission is required for make_applicable"""
+        user1 = User.objects.create_user(username='user1', is_staff=True)
+        view_process = Permission.objects.get(
+            content_type__app_label='core',
+            content_type__model='process',
+            codename='view_process',
+        )
+        user1.user_permissions.add(view_process)
+        client = Client()
+        client.force_login(user1)
+        resp = client.post('/admin/core/process/',
+                           {'action': 'make_applicable',
+                            'select_across': '0',
+                            'index': '0',
+                            '_selected_action': str(self.p1.pk)
+                            },
+                           follow=True)
+        self.assertEqual(200, resp.status_code)
+        self.p1.refresh_from_db()
+        self.assertEqual(StatusModel.Status.DRAFT, self.p1.status)
+
+    def test_status_permission_ok(self) -> None:
+        """Ensure is_qm permission is required for make_applicable"""
+        user1 = User.objects.create_user(username='user1', is_staff=True)
+        is_qm = Permission.objects.get(
+            content_type__app_label='core',
+            content_type__model='process',
+            codename='is_qm',
+        )
+        view_process = Permission.objects.get(
+            content_type__app_label='core',
+            content_type__model='process',
+            codename='view_process',
+        )
+        user1.user_permissions.add(is_qm, view_process)
+        user1.save()
+        user1.refresh_from_db()
+        self.assertTrue(user1.has_perm('core.is_qm'))
+        client = Client()
+        client.force_login(user1)
+        resp = client.post('/admin/core/process/',
+                           {'action': 'make_applicable',
+                            'select_across': '0',
+                            'index': '0',
+                            '_selected_action': str(self.p1.pk)
+                            },
+                           follow=True)
+        self.assertEqual(200, resp.status_code)
+        self.p1.refresh_from_db()
+        self.assertEqual(StatusModel.Status.APPLICABLE, self.p1.status)
