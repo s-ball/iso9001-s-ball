@@ -1,0 +1,23 @@
+{%extends "base.html"%}{%load i18n %}
+{%block title%}{{title}}{%endblock%}
+{%block breadcrumbs%}{{ block.super }}
+<li class="breadcrumb-item active" aria-current="page">{{title}}</li>
+{%endblock%}
+{%block content%}<h1>{{title}}</h1>
+{%if object_list%}
+<table class="table">
+    <thead><tr>
+        <th scope="col">{%translate "Name"%}</th>
+        <th scope="col">{%translate "Description"%}</th>
+        <th scope="col">{%translate "Start date"%}</th>
+    </tr></thead>
+    {%for object in object_list%}
+    <tr>
+        <th scope="row">{{object.name}}</th>
+        <td>{{object.desc}}</td>
+        <td>{{object.start_date}}</td>
+    </tr>
+    {%endfor%}
+</table>
+{%endif%}
+{%endblock%}

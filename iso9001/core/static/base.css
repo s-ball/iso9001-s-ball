@@ -1,0 +1,11 @@
+:root {
+    --qapp-bg: 192, 224, 255
+}
+
+.qapp-bg-lighter {
+    background-color: rgba(var(--qapp-bg), .15);
+}
+
+footer {
+    font-size: 75%;
+}

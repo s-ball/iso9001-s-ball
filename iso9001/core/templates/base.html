@@ -1,0 +1,73 @@
+<!DOCTYPE html>{% load i18n %}
+<html>
+<head>
+    <title>{%block title%}{%translate "Quality site"%}{%endblock%}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <link href="/static/base.css" rel="stylesheet">
+</head>
+<body>
+    <head>
+        <nav id="menu" class="navbar navbar-expand-md border qapp-bg-lighter rounded-3 mt-2 mx-2">
+            <div class="container-fluid" >
+                <a class="navbar-brand" href="#">
+                    <img src="/static/SB_grey.png" height="25rem" alt="SB">
+                </a>
+                <button class="navbar-toggler ms-auto" data-bs-toggle="collapse" data-bs-target="#navMenu"
+                        aria-controls="navMenu" aria-expanded="false" aria-label="Toggle navigation">
+                          <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navMenu">
+                    <ul class="navbar-nav">
+                        <li class="navitem dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"
+                            role="button" aria-expanded="false">{%translate "Processes"%}</a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="/process">{%translate "Processes"%}</a></li>
+                                <li><a class="dropdown-item" href="/axis">{%translate "Quality axes"%}</a></li>
+                                <li><a class="dropdown-item">{%translate "Contributions"%}</a></li>
+                            </ul>                          
+                        </li>
+                    </ul>
+                    <ul class="navbar-nav ms-auto">
+                        {%if user.is_staff%}
+                        <li class="navitem"><a class="nav-link" href="/admin">
+                            {%translate "Admin site"%}
+                        </a></li>
+                        {%endif%}
+                        {% if request.user.is_authenticated %}
+                        <li class="navitem dropdown">
+                            <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"
+                            role="button" aria-expanded="false">
+                            {%blocktranslate with name=user.username%}
+                            Welcome<br>{{name}}{%endblocktranslate%}</a>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                                <li><a class="dropdown-item" href="#">{%translate "Disconnect"%}</a></li>
+                            </ul>                          
+                        </li>
+                        {%else%}
+                        <li class="navitem"><a class="nav-link" href="#">{%translate "Connect"%}</a></li>
+                        {%endif%}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <nav id="breadcrumb" aria-label="breadcrumb" class="ms-4 small">
+            <ol class="breadcrumb mb-2">{%block breadcrumbs%}
+                <li class="breadcrumb-item "><a  href="/">Home</a></li>
+            {%endblock%}</ol>
+        </nav>
+    </head>
+    <main class="rounded-3 border mx-3 p-2 qapp-bg-lighter">
+        {%block content%}<h1>Welcome to the quality site !</h1>{%endblock%}</main>
+    {% block footer %}
+    <footer class="d-flex justify-content-center mt-2">
+    <div class="border qapp-bg-lighter rounded-3 mx-2 p-2">
+        <p class="text-center mb-1">{% trans "Quality Management System" %}</p>
+        <p class="text-center mb-0">Copyright &copy; SBA 2023</p>
+    </div>
+    </footer>
+    {% endblock %}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ENjdO4Dr2bkBIFxQpeoTz1HIcje39Wm4jDKdf19U8gI4ddQ3GYNS7NTKfAdVQSZe" crossorigin="anonymous"></script>
+</body>
+</html>
