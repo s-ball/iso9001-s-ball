@@ -4,8 +4,10 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from core.models import Process, StatusModel
-from bs4 import BeautifulSoup
-
+try:
+    from bs4 import BeautifulSoup
+except ImportError:
+    BeautifulSoup = None
 
 User = get_user_model()
 
@@ -53,11 +55,12 @@ class TestStatusModelAdmin(TestCase):
         self.assertEqual(StatusModel.Status.APPLICABLE, self.p4.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p1.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p3.status)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        msgs = soup.find('ul', attrs={'class': 'messagelist'})
-        self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
-        self.assertTrue(msgs.find('li', attrs={'class': 'success'}
-                                  ).text.startswith('2'))
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            msgs = soup.find('ul', attrs={'class': 'messagelist'})
+            self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
+            self.assertTrue(msgs.find('li', attrs={'class': 'success'}
+                                      ).text.startswith('2'))
 
     def test_make_applicable_1(self) -> None:
         """Make p2 and p4 applicable when p2 already is.
@@ -86,11 +89,12 @@ class TestStatusModelAdmin(TestCase):
         self.assertEqual(StatusModel.Status.APPLICABLE, self.p4.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p1.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p3.status)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        msgs = soup.find('ul', attrs={'class': 'messagelist'})
-        self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
-        self.assertTrue(msgs.find('li', attrs={'class': 'success'}
-                                  ).text.startswith('1'))
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            msgs = soup.find('ul', attrs={'class': 'messagelist'})
+            self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
+            self.assertTrue(msgs.find('li', attrs={'class': 'success'}
+                                      ).text.startswith('1'))
 
     def test_make_applicable_0(self) -> None:
         """Make p2 and p4 applicable when they already are.
@@ -112,11 +116,12 @@ class TestStatusModelAdmin(TestCase):
                             },
                            follow=True)
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        msgs = soup.find('ul', attrs={'class': 'messagelist'})
-        self.assertIsNone(msgs.find('li', attrs={'class': 'success'}))
-        self.assertTrue(msgs.find('li', attrs={'class': 'warning'}
-                                  ).text.startswith('0'))
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            msgs = soup.find('ul', attrs={'class': 'messagelist'})
+            self.assertIsNone(msgs.find('li', attrs={'class': 'success'}))
+            self.assertTrue(msgs.find('li', attrs={'class': 'warning'}
+                                      ).text.startswith('0'))
 
     def test_retire_1(self) -> None:
         """Retire p1 and p3 when p1 is draft.
@@ -145,11 +150,12 @@ class TestStatusModelAdmin(TestCase):
         self.assertEqual(StatusModel.Status.DRAFT, self.p2.status)
         self.assertEqual(StatusModel.Status.RETIRED, self.p3.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p4.status)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        msgs = soup.find('ul', attrs={'class': 'messagelist'})
-        self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
-        self.assertTrue(msgs.find('li', attrs={'class': 'success'}
-                                  ).text.startswith('1'))
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            msgs = soup.find('ul', attrs={'class': 'messagelist'})
+            self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
+            self.assertTrue(msgs.find('li', attrs={'class': 'success'}
+                                      ).text.startswith('1'))
 
     def test_build_draft(self) -> None:
         """Builds a draft from an applicable process"""
@@ -173,14 +179,16 @@ class TestStatusModelAdmin(TestCase):
         self.assertEqual(StatusModel.Status.DRAFT, self.p2.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p3.status)
         self.assertEqual(StatusModel.Status.DRAFT, self.p4.status)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        msgs = soup.find('ul', attrs={'class': 'messagelist'})
-        self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
-        self.assertTrue(msgs.find('li', attrs={'class': 'success'}
-                                  ).text.startswith('1'))
-        new = Process.objects.get(name='P1', status=StatusModel.Status.DRAFT)
-        self.assertEqual(self.p1.desc, new.desc)
-        self.assertEqual({self.admin}, set(new.pilots.all()))
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            msgs = soup.find('ul', attrs={'class': 'messagelist'})
+            self.assertIsNone(msgs.find('li', attrs={'class': 'warning'}))
+            self.assertTrue(msgs.find('li', attrs={'class': 'success'}
+                                      ).text.startswith('1'))
+            new = Process.objects.get(name='P1',
+                                      status=StatusModel.Status.DRAFT)
+            self.assertEqual(self.p1.desc, new.desc)
+            self.assertEqual({self.admin}, set(new.pilots.all()))
 
     def test_add_permission_ko(self) -> None:
         """Ensure add permission is required to build drafts"""

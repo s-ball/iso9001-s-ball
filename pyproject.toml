@@ -30,3 +30,6 @@ dependencies = [
     "python-decouple",
     "django-concurrency",
 ]
+
+[project.optional-dependencies]
+test = ["beautifulsoup4"]
