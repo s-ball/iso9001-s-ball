@@ -38,5 +38,5 @@ class AxesList(generic.ListView):
     def get_context_data(self, **kwargs: Any) -> Dict[str, Any]:
         """Add a title to context_data"""
         context = super().get_context_data(**kwargs)
-        context['title'] = _('Policy axes')
+        context['title'] = _('Quality axes')
         return context

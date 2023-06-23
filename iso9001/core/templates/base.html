@@ -39,14 +39,14 @@
                         <li class="navitem dropdown">
                             <a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#"
                             role="button" aria-expanded="false">
-                            {%blocktranslate with name=user.username%}
-                            Welcome<br>{{name}}{%endblocktranslate%}</a>
+                            {%blocktranslate with name=user.username%}Welcome<br>{{name}}{%endblocktranslate%}</a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="#">{%translate "Disconnect"%}</a></li>
                             </ul>                          
                         </li>
                         {%else%}
-                        <li class="navitem"><a class="nav-link" href="#">{%translate "Connect"%}</a></li>
+                        {%url 'home' as home%}
+                        <li class="navitem"><a class="nav-link" href="{%url 'login'%}?next={{home|urlencode:''}}">{%translate "Connect"%}</a></li>
                         {%endif%}
                     </ul>
                 </div>
@@ -54,17 +54,17 @@
         </nav>
         <nav id="breadcrumb" aria-label="breadcrumb" class="ms-4 small">
             <ol class="breadcrumb mb-2">{%block breadcrumbs%}
-                <li class="breadcrumb-item "><a  href="/">Home</a></li>
+                <li class="breadcrumb-item "><a  href="/">{%translate "Home"%}</a></li>
             {%endblock%}</ol>
         </nav>
     </head>
     <main class="rounded-3 border mx-3 p-2 qapp-bg-lighter">
-        {%block content%}<h1>Welcome to the quality site !</h1>{%endblock%}</main>
+        {%block content%}<h1>{%translate "Welcome to the quality site!"%}</h1>{%endblock%}</main>
     {% block footer %}
     <footer class="d-flex justify-content-center mt-2">
     <div class="border qapp-bg-lighter rounded-3 mx-2 p-2">
-        <p class="text-center mb-1">{% trans "Quality Management System" %}</p>
-        <p class="text-center mb-0">Copyright &copy; SBA 2023</p>
+        <p class="text-center mb-1">{% translate "Quality Management System" %}</p>
+        <p class="text-center mb-0">{% translate "Copyright &copy; SBA 2023" %}</p>
     </div>
     </footer>
     {% endblock %}
