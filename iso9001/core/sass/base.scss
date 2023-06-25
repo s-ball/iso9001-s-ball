@@ -1,0 +1,19 @@
+@use 'bootstrap.css';
+
+.bootstrap input[type="text"],
+.bootstrap input[type="password"],
+.bootstrap input[type="select"] {
+    @extend .form-control;
+}
+
+:root {
+    --qapp-bg: 192, 224, 255
+}
+
+.qapp-bg-lighter {
+    background-color: rgba(var(--qapp-bg), .15);
+}
+
+footer {
+    font-size: 75%;
+}
