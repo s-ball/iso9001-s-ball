@@ -27,7 +27,7 @@ class TestStatusModelAdmin(TestCase):
         """Just a simple connection to the admin site"""
         client = Client()
         client.force_login(self.admin)
-        resp = client.get('/admin/core/process/')
+        resp = client.get('/en/admin/core/process/')
         self.assertEqual(200, resp.status_code)
 
     def test_make_applicable_2(self) -> None:
@@ -36,7 +36,7 @@ class TestStatusModelAdmin(TestCase):
         client.force_login(self.admin)
         self.p4.make_applicable()
         self.p4.retire()
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
                             'select_across': '0',
                             'index': '0',
@@ -70,7 +70,7 @@ class TestStatusModelAdmin(TestCase):
         client = Client()
         client.force_login(self.admin)
         self.p2.make_applicable()
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
                             'select_across': '0',
                             'index': '0',
@@ -105,7 +105,7 @@ class TestStatusModelAdmin(TestCase):
         client.force_login(self.admin)
         self.p2.make_applicable()
         self.p4.make_applicable()
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
                             'select_across': '0',
                             'index': '0',
@@ -131,7 +131,7 @@ class TestStatusModelAdmin(TestCase):
         client = Client()
         client.force_login(self.admin)
         self.p3.make_applicable()
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'retire',
                             'select_across': '0',
                             'index': '0',
@@ -163,7 +163,7 @@ class TestStatusModelAdmin(TestCase):
         client.force_login(self.admin)
         self.p1.make_applicable()
         self.p1.pilots.add(self.admin)
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'build_draft',
                             'select_across': '0',
                             'index': '0',
@@ -201,7 +201,7 @@ class TestStatusModelAdmin(TestCase):
         user1.user_permissions.add(view_process)
         client = Client()
         client.force_login(user1)
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'build_draft',
                             'select_across': '0',
                             'index': '0',
@@ -230,7 +230,7 @@ class TestStatusModelAdmin(TestCase):
         self.assertTrue(user1.has_perm('core.add_process'))
         client = Client()
         client.force_login(user1)
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'build_draft',
                             'select_across': '0',
                             'index': '0',
@@ -251,7 +251,7 @@ class TestStatusModelAdmin(TestCase):
         user1.user_permissions.add(view_process)
         client = Client()
         client.force_login(user1)
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
                             'select_across': '0',
                             'index': '0',
@@ -281,7 +281,7 @@ class TestStatusModelAdmin(TestCase):
         self.assertTrue(user1.has_perm('core.is_qm'))
         client = Client()
         client.force_login(user1)
-        resp = client.post('/admin/core/process/',
+        resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
                             'select_across': '0',
                             'index': '0',
