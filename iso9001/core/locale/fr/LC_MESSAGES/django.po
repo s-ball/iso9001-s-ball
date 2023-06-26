@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: 0.2\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2023-06-25 23:52+0200\n"
+"POT-Creation-Date: 2023-06-26 13:55+0200\n"
 "PO-Revision-Date: 2023-06-25 23:53+0200\n"
 "Last-Translator: s-ball <s-ball@laposte.fr>\n"
 "Language-Team: fr <s-ball@laposte.fr>\n"
@@ -19,158 +19,157 @@ msgstr ""
 "\n"
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 
-#: .\iso9001\core\admin.py:16
+#: .\core\admin.py:16
 msgid "Make applicable"
 msgstr "Passe au statut applicable"
 
-#: .\iso9001\core\admin.py:27
+#: .\core\admin.py:27
 #, python-brace-format
 msgid "{count} object was made applicable"
 msgid_plural "{count} objects were made applicable"
 msgstr[0] "{count} objet rendu applicable"
 msgstr[1] "{count} objet rendus applicables"
 
-#: .\iso9001\core\admin.py:33
+#: .\core\admin.py:33
 msgid "Create draft copies"
 msgstr "Crée des versions de travail"
 
-#: .\iso9001\core\admin.py:43
+#: .\core\admin.py:43
 #, python-brace-format
 msgid "{count} draft object was created"
 msgid_plural "{count} draft objects were created"
 msgstr[0] "{count} version de travail créée"
 msgstr[1] "{count} versions de travail créées"
 
-#: .\iso9001\core\admin.py:49
+#: .\core\admin.py:49
 msgid "Retire"
 msgstr "Retire"
 
-#: .\iso9001\core\admin.py:60
+#: .\core\admin.py:60
 #, python-brace-format
 msgid "{count} object was retired"
 msgid_plural "{count} objects were retired"
 msgstr[0] "{count} objet retiré"
 msgstr[1] "{count} objets retirés"
 
-#: .\iso9001\core\models.py:24
+#: .\core\models.py:24
 msgid "Draft"
 msgstr "Version de travail"
 
-#: .\iso9001\core\models.py:25
+#: .\core\models.py:25
 msgid "Applicable"
 msgstr "Applicable"
 
-#: .\iso9001\core\models.py:26
+#: .\core\models.py:26
 msgid "Retired"
 msgstr "Retiré"
 
-#: .\iso9001\core\models.py:38
+#: .\core\models.py:38
 msgid "{} is not in applicable status"
 msgstr "{} n'est pas applicable"
 
-#: .\iso9001\core\models.py:57
+#: .\core\models.py:57
 msgid "{} is already in applicable status"
 msgstr "{} est déjà applicable"
 
-#: .\iso9001\core\models.py:82
+#: .\core\models.py:82
 msgid "Status cannot be changed"
 msgstr "Le statut n'est pas modifiable"
 
-#: .\iso9001\core\models.py:84
+#: .\core\models.py:84
 msgid "Objects can only be created as draft"
 msgstr "Les objets peuvent seulement être créés en version de travail"
 
-#: .\iso9001\core\models.py:101 .\iso9001\core\models.py:103
+#: .\core\models.py:101 .\core\models.py:103
 msgid "Only draft objects can change"
 msgstr "Seuls les objets en version de travail peuvent être modifiés"
 
-#: .\iso9001\core\models.py:135
+#: .\core\models.py:135
 msgid "Process"
 msgstr "Processus "
 
-#: .\iso9001\core\models.py:136 .\iso9001\core\templates\base.html:24
-#: .\iso9001\core\templates\base.html:26 .\iso9001\core\views.py:26
+#: .\core\models.py:136 .\core\templates\base.html:23
+#: .\core\templates\base.html:25 .\core\views.py:26
 msgid "Processes"
 msgstr "Processus"
 
-#: .\iso9001\core\models.py:137
+#: .\core\models.py:137
 msgid "Quality manager"
 msgstr "Responsable qualité"
 
-#: .\iso9001\core\models.py:161
+#: .\core\models.py:161
 msgid "Quality policy axis"
 msgstr "Axe de la politique qualité"
 
-#: .\iso9001\core\models.py:162
+#: .\core\models.py:162
 msgid "Quality policy axes"
 msgstr "Axes de la politique qualité"
 
-#: .\iso9001\core\models.py:167
+#: .\core\models.py:167
 msgid "Minor"
 msgstr "Mineure"
 
-#: .\iso9001\core\models.py:168
+#: .\core\models.py:168
 msgid "Major"
 msgstr "Majeure"
 
-#: .\iso9001\core\models.py:180
+#: .\core\models.py:180
 msgid "Contribution"
 msgstr "Contribution"
 
-#: .\iso9001\core\models.py:181 .\iso9001\core\templates\base.html:28
+#: .\core\models.py:181 .\core\templates\base.html:27
 msgid "Contributions"
 msgstr "Contributions"
 
-#: .\iso9001\core\templates\base.html:4
+#: .\core\templates\base.html:4
 msgid "Quality site"
 msgstr "Site qualité"
 
-#: .\iso9001\core\templates\base.html:27 .\iso9001\core\views.py:41
+#: .\core\templates\base.html:26 .\core\views.py:41
 msgid "Quality axes"
 msgstr "Axes de la politique qualité"
 
-#: .\iso9001\core\templates\base.html:36
+#: .\core\templates\base.html:35
 msgid "Admin site"
 msgstr "Site d'administration"
 
-#: .\iso9001\core\templates\base.html:43
+#: .\core\templates\base.html:42
 #, python-format
 msgid "Welcome<br>%(name)s"
 msgstr "Bienvenue<br>%(name)s"
 
-#: .\iso9001\core\templates\base.html:51
+#: .\core\templates\base.html:50
 msgid "Disconnect"
 msgstr "Déconnexion"
 
-#: .\iso9001\core\templates\base.html:56
+#: .\core\templates\base.html:55
 msgid "Connect"
 msgstr "Connexion"
 
-#: .\iso9001\core\templates\base.html:65
-#: .\iso9001\core\templates\core\index.html:2
+#: .\core\templates\base.html:64 .\core\templates\core\index.html:2
 msgid "Home"
 msgstr "Accueil"
 
-#: .\iso9001\core\templates\base.html:70
+#: .\core\templates\base.html:69
 msgid "Welcome to the quality site!"
 msgstr "Bienvenue sur le site qualité !"
 
-#: .\iso9001\core\templates\base.html:74
+#: .\core\templates\base.html:73
 msgid "Quality Management System"
 msgstr "Système de Management Qualité"
 
-#: .\iso9001\core\templates\base.html:75
+#: .\core\templates\base.html:74
 msgid "Copyright &copy; SBA 2023"
 msgstr "Copyright &copy; SBA 2023"
 
-#: .\iso9001\core\templates\core\process_list.html:10
+#: .\core\templates\core\process_list.html:10
 msgid "Name"
 msgstr "Nom"
 
-#: .\iso9001\core\templates\core\process_list.html:11
+#: .\core\templates\core\process_list.html:11
 msgid "Description"
 msgstr "Description"
 
-#: .\iso9001\core\templates\core\process_list.html:12
+#: .\core\templates\core\process_list.html:12
 msgid "Start date"
 msgstr "Date de début"
