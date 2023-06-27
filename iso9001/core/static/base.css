@@ -2007,6 +2007,7 @@ progress {
 
 .form-control, .bootstrap input[type=text],
 .bootstrap input[type=password],
+.bootstrap input[type=email],
 .bootstrap input[type=select] {
   display: block;
   width: 100%;
@@ -2028,24 +2029,28 @@ progress {
 @media (prefers-reduced-motion: reduce) {
   .form-control, .bootstrap input[type=text],
   .bootstrap input[type=password],
+  .bootstrap input[type=email],
   .bootstrap input[type=select] {
     transition: none;
   }
 }
 .form-control[type=file], .bootstrap input[type=file][type=text],
 .bootstrap input[type=file][type=password],
+.bootstrap input[type=file][type=email],
 .bootstrap input[type=file][type=select] {
   overflow: hidden;
 }
 
 .form-control[type=file]:not(:disabled):not([readonly]), .bootstrap input[type=file][type=text]:not(:disabled):not([readonly]),
 .bootstrap input[type=file][type=password]:not(:disabled):not([readonly]),
+.bootstrap input[type=file][type=email]:not(:disabled):not([readonly]),
 .bootstrap input[type=file][type=select]:not(:disabled):not([readonly]) {
   cursor: pointer;
 }
 
 .form-control:focus, .bootstrap input[type=text]:focus,
 .bootstrap input[type=password]:focus,
+.bootstrap input[type=email]:focus,
 .bootstrap input[type=select]:focus {
   color: #212529;
   background-color: #fff;
@@ -2056,12 +2061,14 @@ progress {
 
 .form-control::-webkit-date-and-time-value, .bootstrap input[type=text]::-webkit-date-and-time-value,
 .bootstrap input[type=password]::-webkit-date-and-time-value,
+.bootstrap input[type=email]::-webkit-date-and-time-value,
 .bootstrap input[type=select]::-webkit-date-and-time-value {
   height: 1.5em;
 }
 
 .form-control::-moz-placeholder, .bootstrap input[type=text]::-moz-placeholder,
 .bootstrap input[type=password]::-moz-placeholder,
+.bootstrap input[type=email]::-moz-placeholder,
 .bootstrap input[type=select]::-moz-placeholder {
   color: #6c757d;
   opacity: 1;
@@ -2069,6 +2076,7 @@ progress {
 
 .form-control::placeholder, .bootstrap input[type=text]::placeholder,
 .bootstrap input[type=password]::placeholder,
+.bootstrap input[type=email]::placeholder,
 .bootstrap input[type=select]::placeholder {
   color: #6c757d;
   opacity: 1;
@@ -2076,6 +2084,7 @@ progress {
 
 .form-control:disabled, .bootstrap input[type=text]:disabled,
 .bootstrap input[type=password]:disabled,
+.bootstrap input[type=email]:disabled,
 .bootstrap input[type=select]:disabled {
   background-color: #e9ecef;
   opacity: 1;
@@ -2083,6 +2092,7 @@ progress {
 
 .form-control::-webkit-file-upload-button, .bootstrap input[type=text]::-webkit-file-upload-button,
 .bootstrap input[type=password]::-webkit-file-upload-button,
+.bootstrap input[type=email]::-webkit-file-upload-button,
 .bootstrap input[type=select]::-webkit-file-upload-button {
   padding: 0.375rem 0.75rem;
   margin: -0.375rem -0.75rem;
@@ -2102,6 +2112,7 @@ progress {
 
 .form-control::file-selector-button, .bootstrap input[type=text]::file-selector-button,
 .bootstrap input[type=password]::file-selector-button,
+.bootstrap input[type=email]::file-selector-button,
 .bootstrap input[type=select]::file-selector-button {
   padding: 0.375rem 0.75rem;
   margin: -0.375rem -0.75rem;
@@ -2121,24 +2132,28 @@ progress {
 @media (prefers-reduced-motion: reduce) {
   .form-control::-webkit-file-upload-button, .bootstrap input[type=text]::-webkit-file-upload-button,
   .bootstrap input[type=password]::-webkit-file-upload-button,
+  .bootstrap input[type=email]::-webkit-file-upload-button,
   .bootstrap input[type=select]::-webkit-file-upload-button {
     -webkit-transition: none;
     transition: none;
   }
   .form-control::file-selector-button, .bootstrap input[type=text]::file-selector-button,
   .bootstrap input[type=password]::file-selector-button,
+  .bootstrap input[type=email]::file-selector-button,
   .bootstrap input[type=select]::file-selector-button {
     transition: none;
   }
 }
 .form-control:hover:not(:disabled):not([readonly])::-webkit-file-upload-button, .bootstrap input[type=text]:hover:not(:disabled):not([readonly])::-webkit-file-upload-button,
 .bootstrap input[type=password]:hover:not(:disabled):not([readonly])::-webkit-file-upload-button,
+.bootstrap input[type=email]:hover:not(:disabled):not([readonly])::-webkit-file-upload-button,
 .bootstrap input[type=select]:hover:not(:disabled):not([readonly])::-webkit-file-upload-button {
   background-color: #dde0e3;
 }
 
 .form-control:hover:not(:disabled):not([readonly])::file-selector-button, .bootstrap input[type=text]:hover:not(:disabled):not([readonly])::file-selector-button,
 .bootstrap input[type=password]:hover:not(:disabled):not([readonly])::file-selector-button,
+.bootstrap input[type=email]:hover:not(:disabled):not([readonly])::file-selector-button,
 .bootstrap input[type=select]:hover:not(:disabled):not([readonly])::file-selector-button {
   background-color: #dde0e3;
 }
@@ -2561,6 +2576,7 @@ textarea.form-control-lg {
 
 .form-floating > .form-control, .bootstrap .form-floating > input[type=text],
 .bootstrap .form-floating > input[type=password],
+.bootstrap .form-floating > input[type=email],
 .bootstrap .form-floating > input[type=select],
 .form-floating > .form-control-plaintext,
 .form-floating > .form-select {
@@ -2592,6 +2608,7 @@ textarea.form-control-lg {
 }
 .form-floating > .form-control, .bootstrap .form-floating > input[type=text],
 .bootstrap .form-floating > input[type=password],
+.bootstrap .form-floating > input[type=email],
 .bootstrap .form-floating > input[type=select],
 .form-floating > .form-control-plaintext {
   padding: 1rem 0.75rem;
@@ -2599,12 +2616,14 @@ textarea.form-control-lg {
 
 .form-floating > .form-control::-moz-placeholder, .bootstrap .form-floating > input[type=text]::-moz-placeholder,
 .bootstrap .form-floating > input[type=password]::-moz-placeholder,
+.bootstrap .form-floating > input[type=email]::-moz-placeholder,
 .bootstrap .form-floating > input[type=select]::-moz-placeholder, .form-floating > .form-control-plaintext::-moz-placeholder {
   color: transparent;
 }
 
 .form-floating > .form-control::placeholder, .bootstrap .form-floating > input[type=text]::placeholder,
 .bootstrap .form-floating > input[type=password]::placeholder,
+.bootstrap .form-floating > input[type=email]::placeholder,
 .bootstrap .form-floating > input[type=select]::placeholder,
 .form-floating > .form-control-plaintext::placeholder {
   color: transparent;
@@ -2612,6 +2631,7 @@ textarea.form-control-lg {
 
 .form-floating > .form-control:not(:-moz-placeholder-shown), .bootstrap .form-floating > input[type=text]:not(:-moz-placeholder-shown),
 .bootstrap .form-floating > input[type=password]:not(:-moz-placeholder-shown),
+.bootstrap .form-floating > input[type=email]:not(:-moz-placeholder-shown),
 .bootstrap .form-floating > input[type=select]:not(:-moz-placeholder-shown), .form-floating > .form-control-plaintext:not(:-moz-placeholder-shown) {
   padding-top: 1.625rem;
   padding-bottom: 0.625rem;
@@ -2619,8 +2639,10 @@ textarea.form-control-lg {
 
 .form-floating > .form-control:focus, .bootstrap .form-floating > input[type=text]:focus,
 .bootstrap .form-floating > input[type=password]:focus,
+.bootstrap .form-floating > input[type=email]:focus,
 .bootstrap .form-floating > input[type=select]:focus, .form-floating > .form-control:not(:placeholder-shown), .bootstrap .form-floating > input[type=text]:not(:placeholder-shown),
 .bootstrap .form-floating > input[type=password]:not(:placeholder-shown),
+.bootstrap .form-floating > input[type=email]:not(:placeholder-shown),
 .bootstrap .form-floating > input[type=select]:not(:placeholder-shown),
 .form-floating > .form-control-plaintext:focus,
 .form-floating > .form-control-plaintext:not(:placeholder-shown) {
@@ -2630,6 +2652,7 @@ textarea.form-control-lg {
 
 .form-floating > .form-control:-webkit-autofill, .bootstrap .form-floating > input[type=text]:-webkit-autofill,
 .bootstrap .form-floating > input[type=password]:-webkit-autofill,
+.bootstrap .form-floating > input[type=email]:-webkit-autofill,
 .bootstrap .form-floating > input[type=select]:-webkit-autofill,
 .form-floating > .form-control-plaintext:-webkit-autofill {
   padding-top: 1.625rem;
@@ -2643,6 +2666,7 @@ textarea.form-control-lg {
 
 .form-floating > .form-control:not(:-moz-placeholder-shown) ~ label, .bootstrap .form-floating > input[type=text]:not(:-moz-placeholder-shown) ~ label,
 .bootstrap .form-floating > input[type=password]:not(:-moz-placeholder-shown) ~ label,
+.bootstrap .form-floating > input[type=email]:not(:-moz-placeholder-shown) ~ label,
 .bootstrap .form-floating > input[type=select]:not(:-moz-placeholder-shown) ~ label {
   opacity: 0.65;
   transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
@@ -2650,10 +2674,12 @@ textarea.form-control-lg {
 
 .form-floating > .form-control:focus ~ label, .bootstrap .form-floating > input[type=text]:focus ~ label,
 .bootstrap .form-floating > input[type=password]:focus ~ label,
+.bootstrap .form-floating > input[type=email]:focus ~ label,
 .bootstrap .form-floating > input[type=select]:focus ~ label,
 .form-floating > .form-control:not(:placeholder-shown) ~ label,
 .bootstrap .form-floating > input[type=text]:not(:placeholder-shown) ~ label,
 .bootstrap .form-floating > input[type=password]:not(:placeholder-shown) ~ label,
+.bootstrap .form-floating > input[type=email]:not(:placeholder-shown) ~ label,
 .bootstrap .form-floating > input[type=select]:not(:placeholder-shown) ~ label,
 .form-floating > .form-control-plaintext ~ label,
 .form-floating > .form-select ~ label {
@@ -2663,6 +2689,7 @@ textarea.form-control-lg {
 
 .form-floating > .form-control:-webkit-autofill ~ label, .bootstrap .form-floating > input[type=text]:-webkit-autofill ~ label,
 .bootstrap .form-floating > input[type=password]:-webkit-autofill ~ label,
+.bootstrap .form-floating > input[type=email]:-webkit-autofill ~ label,
 .bootstrap .form-floating > input[type=select]:-webkit-autofill ~ label {
   opacity: 0.65;
   transform: scale(0.85) translateY(-0.5rem) translateX(0.15rem);
@@ -2682,6 +2709,7 @@ textarea.form-control-lg {
 
 .input-group > .form-control, .bootstrap .input-group > input[type=text],
 .bootstrap .input-group > input[type=password],
+.bootstrap .input-group > input[type=email],
 .bootstrap .input-group > input[type=select],
 .input-group > .form-select,
 .input-group > .form-floating {
@@ -2693,6 +2721,7 @@ textarea.form-control-lg {
 
 .input-group > .form-control:focus, .bootstrap .input-group > input[type=text]:focus,
 .bootstrap .input-group > input[type=password]:focus,
+.bootstrap .input-group > input[type=email]:focus,
 .bootstrap .input-group > input[type=select]:focus,
 .input-group > .form-select:focus,
 .input-group > .form-floating:focus-within {
@@ -2725,6 +2754,7 @@ textarea.form-control-lg {
 
 .input-group-lg > .form-control, .bootstrap .input-group-lg > input[type=text],
 .bootstrap .input-group-lg > input[type=password],
+.bootstrap .input-group-lg > input[type=email],
 .bootstrap .input-group-lg > input[type=select],
 .input-group-lg > .form-select,
 .input-group-lg > .input-group-text,
@@ -2736,6 +2766,7 @@ textarea.form-control-lg {
 
 .input-group-sm > .form-control, .bootstrap .input-group-sm > input[type=text],
 .bootstrap .input-group-sm > input[type=password],
+.bootstrap .input-group-sm > input[type=email],
 .bootstrap .input-group-sm > input[type=select],
 .input-group-sm > .form-select,
 .input-group-sm > .input-group-text,
@@ -2755,6 +2786,7 @@ textarea.form-control-lg {
 .input-group:not(.has-validation) > .form-floating:not(:last-child) > .form-control,
 .bootstrap .input-group:not(.has-validation) > .form-floating:not(:last-child) > input[type=text],
 .bootstrap .input-group:not(.has-validation) > .form-floating:not(:last-child) > input[type=password],
+.bootstrap .input-group:not(.has-validation) > .form-floating:not(:last-child) > input[type=email],
 .bootstrap .input-group:not(.has-validation) > .form-floating:not(:last-child) > input[type=select],
 .input-group:not(.has-validation) > .form-floating:not(:last-child) > .form-select {
   border-top-right-radius: 0;
@@ -2766,6 +2798,7 @@ textarea.form-control-lg {
 .input-group.has-validation > .form-floating:nth-last-child(n+3) > .form-control,
 .bootstrap .input-group.has-validation > .form-floating:nth-last-child(n+3) > input[type=text],
 .bootstrap .input-group.has-validation > .form-floating:nth-last-child(n+3) > input[type=password],
+.bootstrap .input-group.has-validation > .form-floating:nth-last-child(n+3) > input[type=email],
 .bootstrap .input-group.has-validation > .form-floating:nth-last-child(n+3) > input[type=select],
 .input-group.has-validation > .form-floating:nth-last-child(n+3) > .form-select {
   border-top-right-radius: 0;
@@ -2780,6 +2813,7 @@ textarea.form-control-lg {
 
 .input-group > .form-floating:not(:first-child) > .form-control, .bootstrap .input-group > .form-floating:not(:first-child) > input[type=text],
 .bootstrap .input-group > .form-floating:not(:first-child) > input[type=password],
+.bootstrap .input-group > .form-floating:not(:first-child) > input[type=email],
 .bootstrap .input-group > .form-floating:not(:first-child) > input[type=select],
 .input-group > .form-floating:not(:first-child) > .form-select {
   border-top-left-radius: 0;
@@ -2818,9 +2852,12 @@ textarea.form-control-lg {
 .was-validated .form-control:valid, .was-validated .bootstrap input[type=text]:valid, .bootstrap .was-validated input[type=text]:valid,
 .was-validated .bootstrap input[type=password]:valid,
 .bootstrap .was-validated input[type=password]:valid,
+.was-validated .bootstrap input[type=email]:valid,
+.bootstrap .was-validated input[type=email]:valid,
 .was-validated .bootstrap input[type=select]:valid,
 .bootstrap .was-validated input[type=select]:valid, .form-control.is-valid, .bootstrap input.is-valid[type=text],
 .bootstrap input.is-valid[type=password],
+.bootstrap input.is-valid[type=email],
 .bootstrap input.is-valid[type=select] {
   border-color: #198754;
   padding-right: calc(1.5em + 0.75rem);
@@ -2833,9 +2870,12 @@ textarea.form-control-lg {
 .was-validated .form-control:valid:focus, .was-validated .bootstrap input[type=text]:valid:focus, .bootstrap .was-validated input[type=text]:valid:focus,
 .was-validated .bootstrap input[type=password]:valid:focus,
 .bootstrap .was-validated input[type=password]:valid:focus,
+.was-validated .bootstrap input[type=email]:valid:focus,
+.bootstrap .was-validated input[type=email]:valid:focus,
 .was-validated .bootstrap input[type=select]:valid:focus,
 .bootstrap .was-validated input[type=select]:valid:focus, .form-control.is-valid:focus, .bootstrap input.is-valid[type=text]:focus,
 .bootstrap input.is-valid[type=password]:focus,
+.bootstrap input.is-valid[type=email]:focus,
 .bootstrap input.is-valid[type=select]:focus {
   border-color: #198754;
   box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.25);
@@ -2889,9 +2929,12 @@ textarea.form-control-lg {
 .was-validated .input-group > .form-control:not(:focus):valid, .was-validated .bootstrap .input-group > input[type=text]:not(:focus):valid, .bootstrap .was-validated .input-group > input[type=text]:not(:focus):valid,
 .was-validated .bootstrap .input-group > input[type=password]:not(:focus):valid,
 .bootstrap .was-validated .input-group > input[type=password]:not(:focus):valid,
+.was-validated .bootstrap .input-group > input[type=email]:not(:focus):valid,
+.bootstrap .was-validated .input-group > input[type=email]:not(:focus):valid,
 .was-validated .bootstrap .input-group > input[type=select]:not(:focus):valid,
 .bootstrap .was-validated .input-group > input[type=select]:not(:focus):valid, .input-group > .form-control:not(:focus).is-valid, .bootstrap .input-group > input[type=text]:not(:focus).is-valid,
 .bootstrap .input-group > input[type=password]:not(:focus).is-valid,
+.bootstrap .input-group > input[type=email]:not(:focus).is-valid,
 .bootstrap .input-group > input[type=select]:not(:focus).is-valid,
 .was-validated .input-group > .form-select:not(:focus):valid,
 .input-group > .form-select:not(:focus).is-valid,
@@ -2932,9 +2975,12 @@ textarea.form-control-lg {
 .was-validated .form-control:invalid, .was-validated .bootstrap input[type=text]:invalid, .bootstrap .was-validated input[type=text]:invalid,
 .was-validated .bootstrap input[type=password]:invalid,
 .bootstrap .was-validated input[type=password]:invalid,
+.was-validated .bootstrap input[type=email]:invalid,
+.bootstrap .was-validated input[type=email]:invalid,
 .was-validated .bootstrap input[type=select]:invalid,
 .bootstrap .was-validated input[type=select]:invalid, .form-control.is-invalid, .bootstrap input.is-invalid[type=text],
 .bootstrap input.is-invalid[type=password],
+.bootstrap input.is-invalid[type=email],
 .bootstrap input.is-invalid[type=select] {
   border-color: #dc3545;
   padding-right: calc(1.5em + 0.75rem);
@@ -2947,9 +2993,12 @@ textarea.form-control-lg {
 .was-validated .form-control:invalid:focus, .was-validated .bootstrap input[type=text]:invalid:focus, .bootstrap .was-validated input[type=text]:invalid:focus,
 .was-validated .bootstrap input[type=password]:invalid:focus,
 .bootstrap .was-validated input[type=password]:invalid:focus,
+.was-validated .bootstrap input[type=email]:invalid:focus,
+.bootstrap .was-validated input[type=email]:invalid:focus,
 .was-validated .bootstrap input[type=select]:invalid:focus,
 .bootstrap .was-validated input[type=select]:invalid:focus, .form-control.is-invalid:focus, .bootstrap input.is-invalid[type=text]:focus,
 .bootstrap input.is-invalid[type=password]:focus,
+.bootstrap input.is-invalid[type=email]:focus,
 .bootstrap input.is-invalid[type=select]:focus {
   border-color: #dc3545;
   box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
@@ -3003,9 +3052,12 @@ textarea.form-control-lg {
 .was-validated .input-group > .form-control:not(:focus):invalid, .was-validated .bootstrap .input-group > input[type=text]:not(:focus):invalid, .bootstrap .was-validated .input-group > input[type=text]:not(:focus):invalid,
 .was-validated .bootstrap .input-group > input[type=password]:not(:focus):invalid,
 .bootstrap .was-validated .input-group > input[type=password]:not(:focus):invalid,
+.was-validated .bootstrap .input-group > input[type=email]:not(:focus):invalid,
+.bootstrap .was-validated .input-group > input[type=email]:not(:focus):invalid,
 .was-validated .bootstrap .input-group > input[type=select]:not(:focus):invalid,
 .bootstrap .was-validated .input-group > input[type=select]:not(:focus):invalid, .input-group > .form-control:not(:focus).is-invalid, .bootstrap .input-group > input[type=text]:not(:focus).is-invalid,
 .bootstrap .input-group > input[type=password]:not(:focus).is-invalid,
+.bootstrap .input-group > input[type=email]:not(:focus).is-invalid,
 .bootstrap .input-group > input[type=select]:not(:focus).is-invalid,
 .was-validated .input-group > .form-select:not(:focus):invalid,
 .input-group > .form-select:not(:focus).is-invalid,
@@ -8000,7 +8052,7 @@ textarea.form-control-lg {
   margin-left: 0.25rem !important;
 }
 
-.mx-2 {
+.mx-2, .errornote {
   margin-right: 0.5rem !important;
   margin-left: 0.5rem !important;
 }
@@ -8184,7 +8236,7 @@ textarea.form-control-lg {
   padding: 0.5rem !important;
 }
 
-.p-3 {
+.p-3, .errornote {
   padding: 1rem !important;
 }
 
@@ -8614,7 +8666,7 @@ textarea.form-control-lg {
   background-color: rgba(var(--bs-info-rgb), var(--bs-bg-opacity)) !important;
 }
 
-.bg-warning {
+.bg-warning, .errornote {
   --bs-bg-opacity: 1;
   background-color: rgba(var(--bs-warning-rgb), var(--bs-bg-opacity)) !important;
 }
@@ -8720,7 +8772,7 @@ textarea.form-control-lg {
   border-radius: var(--bs-border-radius) !important;
 }
 
-.rounded-3 {
+.rounded-3, .errornote {
   border-radius: var(--bs-border-radius-lg) !important;
 }
 

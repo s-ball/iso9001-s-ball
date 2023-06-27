@@ -2,8 +2,16 @@
 
 .bootstrap input[type="text"],
 .bootstrap input[type="password"],
+.bootstrap input[type="email"],
 .bootstrap input[type="select"] {
     @extend .form-control;
+}
+
+.errornote {
+    @extend .bg-warning;
+    @extend .mx-2;
+    @extend .p-3;
+    @extend .rounded-3;
 }
 
 :root {
