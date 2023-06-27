@@ -16,12 +16,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from django.shortcuts import redirect
 from django.conf.urls.i18n import i18n_patterns
 
 urlpatterns = i18n_patterns(
     path('admin/', admin.site.urls),
-    path('auth/', include("django.contrib.auth.urls")),
-    path('favicon.ico', lambda r: redirect('static/favicon.ico')),
+    path('accounts/', include("django.contrib.auth.urls")),
     path('', include('core.urls')),
 )

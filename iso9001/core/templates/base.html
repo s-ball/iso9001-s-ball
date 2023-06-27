@@ -4,6 +4,7 @@
     <title>{%block title%}{%translate "Quality site"%}{%endblock%}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link href="{% static 'base.css'%}" rel="stylesheet">
+    <link rel="icon" href="{% static 'favicon.ico'%}" type="image/x-icon" />
 </head>
 <body>
     <head>
@@ -24,7 +25,7 @@
                             <ul class="dropdown-menu">
                                 <li><a class="dropdown-item" href="{%url 'processes'%}"}">{%translate "Processes"%}</a></li>
                                 <li><a class="dropdown-item" href="{%url 'axes'%}">{%translate "Quality axes"%}</a></li>
-                                <li><a class="dropdown-item">{%translate "Contributions"%}</a></li>
+                                <li><a class="dropdown-item" href="{%url 'contributions'%}">{%translate "Contributions"%}</a></li>
                             </ul>                          
                         </li>
                     </ul>
