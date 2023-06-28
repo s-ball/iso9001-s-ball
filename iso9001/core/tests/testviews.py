@@ -4,7 +4,7 @@ from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
 from django.urls import reverse
-from core.models import Process, StatusModel, PolicyAxis
+from core.models import Process, StatusModel, PolicyAxis, Contribution
 try:
     from bs4 import BeautifulSoup
 except ImportError:
@@ -29,7 +29,7 @@ class TestViews(TestCase):
         client = Client()
         resp = client.get(reverse('home'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content)
+        soup = BeautifulSoup(resp.content, 'html.parser')
         menu = soup.find(attrs={'id': 'menu'})
         url = reverse('login')
         atag = menu.css.select(f'a[href^="{url}"]')
@@ -41,7 +41,7 @@ class TestViews(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('home'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content)
+        soup = BeautifulSoup(resp.content, 'html.parser')
         menu = soup.find(attrs={'id': 'menu'})
         url = reverse('login')
         atag = menu.css.select(f'a[href^="{url}"]')
@@ -64,7 +64,7 @@ class TestViews(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('processes'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content)
+        soup = BeautifulSoup(resp.content, 'html.parser')
         names = soup.findAll('th', attrs={'scope': 'row'})
         self.assertEqual(1, len(names))
         self.assertEqual('P1', names[0].text)
@@ -94,8 +94,52 @@ class TestViews(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('axes'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content)
+        soup = BeautifulSoup(resp.content, 'html.parser')
         names = soup.findAll('th', attrs={'scope': 'row'})
         self.assertEqual(2, len(names))
         self.assertEqual('A1', names[0].text)
         self.assertEqual('A3', names[1].text)
+
+
+class TestContrib(TestCase):
+    """Tests for the Contribution view"""
+    @classmethod
+    def setUpTestData(cls) -> None:
+        """Install 3 processes, 3 axes and 1 user"""
+        cls.user1 = User.objects.create_user(username='user1')
+        cls.p1 = Process.objects.create(name='P1', desc='Prod 1',
+                                        status=StatusModel.Status.APPLICABLE)
+        cls.p2 = Process.objects.create(name='P2', desc='Prod 2')
+        cls.p3 = Process.objects.create(name='P3', desc='Prod 3',
+                                        status=StatusModel.Status.APPLICABLE)
+        cls.a1 = PolicyAxis.objects.create(
+            name='A1', desc='Axis 1', status=StatusModel.Status.APPLICABLE)
+        cls.a2 = PolicyAxis.objects.create(name='A2', desc='Axis 2')
+        cls.a3 = PolicyAxis.objects.create(
+            name='A3', desc='Axis 3', status=StatusModel.Status.APPLICABLE)
+
+    def test_no_perms(self) -> None:
+        """Controls that permission are required to show the view"""
+        client = Client()
+        client.force_login(self.user1)
+        resp = client.get(reverse('contributions'))
+        self.assertEqual(403, resp.status_code)
+
+    def test_only_applicable(self) -> None:
+        """Controls that only objects in applicable state are shown"""
+        perms = Permission.objects.filter(
+            content_type__app_label='core',
+            codename__startswith='view_',
+        )
+        self.user1.user_permissions.add(*(perm for perm in perms
+                                          if perm.content_type.model
+                                          != Contribution))
+        client = Client()
+        client.force_login(self.user1)
+        resp = client.get(reverse('contributions'))
+        self.assertEqual(200, resp.status_code)
+        soup = BeautifulSoup(resp.content, 'html.parser')
+        axes = soup.css.select('main thead > tr > th')
+        self.assertEqual(3, len(axes))
+        processes = soup.css.select('main tbody > tr > th')
+        self.assertEqual(2, len(processes))

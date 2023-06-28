@@ -12,14 +12,14 @@
         <th scope="col">{{axis}}</th>
         {%endfor%}
     </tr></thead>
-    {%for process, contribs in object_list.items%}
+    <tbody>{%for process, contribs in object_list.items%}
     <tr>
         <th scope="row">{{process}}</th>
         {%for contrib in contribs%}
         <td>{{contrib}}</td>
         {%endfor%}
     </tr>
-    {%endfor%}
+    {%endfor%}</tbody>
 </table>
 {%endif%}
 {%endblock%}
