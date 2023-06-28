@@ -6,8 +6,15 @@ from django.contrib.auth.models import Permission
 from django.urls import reverse
 from core.models import Process, StatusModel, PolicyAxis, Contribution
 try:
-    from bs4 import BeautifulSoup
+    from bs4 import BeautifulSoup  # pyright: ignore reportMissingImports
 except ImportError:
+    import sys
+
+    print("""
+    *** WARNING ***
+        =======
+    BeautifulSoup is not installed, some tests will not be run
+    """, file=sys.stderr)
     BeautifulSoup = None
 
 User = get_user_model()
@@ -29,11 +36,12 @@ class TestViews(TestCase):
         client = Client()
         resp = client.get(reverse('home'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        menu = soup.find(attrs={'id': 'menu'})
-        url = reverse('login')
-        atag = menu.css.select(f'a[href^="{url}"]')
-        self.assertTrue('Connect' in atag[0].text)
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            menu = soup.find(attrs={'id': 'menu'})
+            url = reverse('login')
+            atag = menu.css.select(f'a[href^="{url}"]')
+            self.assertTrue('Connect' in atag[0].text)
 
     def test_base_connected(self) -> None:
         """Ensure menu contains the user name and no connection entry"""
@@ -41,15 +49,16 @@ class TestViews(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('home'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        menu = soup.find(attrs={'id': 'menu'})
-        url = reverse('login')
-        atag = menu.css.select(f'a[href^="{url}"]')
-        self.assertEqual(0, len(atag))
-        for tag in menu.find_all():
-            if 'user1' in tag.text:
-                return
-        self.fail('username not found in menu')
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            menu = soup.find(attrs={'id': 'menu'})
+            url = reverse('login')
+            atag = menu.css.select(f'a[href^="{url}"]')
+            self.assertEqual(0, len(atag))
+            for tag in menu.find_all():
+                if 'user1' in tag.text:
+                    return
+            self.fail('username not found in menu')
 
     def test_process_list(self) -> None:
         """Ensure that we get the applicable process"""
@@ -64,10 +73,11 @@ class TestViews(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('processes'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        names = soup.findAll('th', attrs={'scope': 'row'})
-        self.assertEqual(1, len(names))
-        self.assertEqual('P1', names[0].text)
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            names = soup.findAll('th', attrs={'scope': 'row'})
+            self.assertEqual(1, len(names))
+            self.assertEqual('P1', names[0].text)
 
     def test_process_no_perm(self) -> None:
         """Ensure that view_process permission is required"""
@@ -94,11 +104,12 @@ class TestViews(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('axes'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        names = soup.findAll('th', attrs={'scope': 'row'})
-        self.assertEqual(2, len(names))
-        self.assertEqual('A1', names[0].text)
-        self.assertEqual('A3', names[1].text)
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            names = soup.findAll('th', attrs={'scope': 'row'})
+            self.assertEqual(2, len(names))
+            self.assertEqual('A1', names[0].text)
+            self.assertEqual('A3', names[1].text)
 
 
 class TestContrib(TestCase):
@@ -138,8 +149,9 @@ class TestContrib(TestCase):
         client.force_login(self.user1)
         resp = client.get(reverse('contributions'))
         self.assertEqual(200, resp.status_code)
-        soup = BeautifulSoup(resp.content, 'html.parser')
-        axes = soup.css.select('main thead > tr > th')
-        self.assertEqual(3, len(axes))
-        processes = soup.css.select('main tbody > tr > th')
-        self.assertEqual(2, len(processes))
+        if BeautifulSoup:
+            soup = BeautifulSoup(resp.content, 'html.parser')
+            axes = soup.css.select('main thead > tr > th')
+            self.assertEqual(3, len(axes))
+            processes = soup.css.select('main tbody > tr > th')
+            self.assertEqual(2, len(processes))
