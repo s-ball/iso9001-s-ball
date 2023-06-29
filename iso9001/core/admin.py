@@ -1,6 +1,6 @@
 """Declare models for the admin site"""
 
-from typing import Any
+from typing import Any, Optional
 from django.contrib import admin, messages
 from django.db.models.fields.related import ForeignKey
 from django.forms.models import ModelChoiceField
@@ -79,8 +79,8 @@ class StatusModelAdmin(admin.ModelAdmin):
 class ContributionAdmin(admin.ModelAdmin):
     """Use a custom ModelAdmin to only show applicable objects"""
     def formfield_for_foreignkey(self, db_field: ForeignKey[Any],
-                                 request: HttpRequest | None,
-                                 **kwargs: Any) -> ModelChoiceField | None:
+                                 request: Optional[HttpRequest],
+                                 **kwargs: Any) -> Optional[ModelChoiceField]:
         model = {'process': Process, 'axis': PolicyAxis}
         kwargs['queryset'] = model[db_field.name].objects.filter(
             status=StatusModel.Status.APPLICABLE,

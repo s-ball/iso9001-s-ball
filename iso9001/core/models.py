@@ -2,7 +2,7 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
-from typing import Collection
+from typing import Collection, Optional
 
 from django.db import models
 from django.db.models import Q, F
@@ -64,7 +64,7 @@ class StatusModel(models.Model):
         self.end_date = None
         self.save()
 
-    def clean_fields(self, exclude: Collection[str] | None = ...) -> None:
+    def clean_fields(self, exclude: Optional[Collection[str]] = ...) -> None:
         """status field should not be changed in a form"""
         errors = {}
         # do super validation
