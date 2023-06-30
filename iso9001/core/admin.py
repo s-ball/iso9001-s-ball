@@ -6,12 +6,15 @@ from django.db.models.fields.related import ForeignKey
 from django.forms.models import ModelChoiceField
 from django.http.request import HttpRequest
 from django.utils.translation import ngettext, gettext as _
+
+from adminsortable2.admin import SortableAdminMixin
+
 from .models import Process, PolicyAxis, StatusModel, Contribution
 
 
 # Register your models here.
 @admin.register(Process, PolicyAxis)
-class StatusModelAdmin(admin.ModelAdmin):
+class StatusModelAdmin(SortableAdminMixin, admin.ModelAdmin):
     """ModelAdmin for StatusModel subclasses.
 
     Provides actions to change the status through the model methods.

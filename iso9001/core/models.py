@@ -122,6 +122,10 @@ class Process(StatusModel):
     desc = models.TextField()
     pilots = models.ManyToManyField(to=User, blank=True)
 
+    model_order = models.PositiveSmallIntegerField(
+        default=0, blank=False, null=False, db_index=True,
+    )
+
     def build_draft(self) -> "Process":
         draft = Process.objects.create(name=self.name, desc=self.desc)
         draft.pilots.set(self.pilots.all())
@@ -135,6 +139,7 @@ class Process(StatusModel):
         verbose_name = _('Process')
         verbose_name_plural = _('Processes')
         permissions = [('is_qm', _('Quality manager'))]
+        ordering = ['model_order']
 
 
 class PolicyAxis(StatusModel):
@@ -144,6 +149,10 @@ class PolicyAxis(StatusModel):
     reviewed = models.DateField(default=timezone.now)
     processes = models.ManyToManyField(to=Process, through="Contribution",
                                        blank=True)
+
+    model_order = models.PositiveSmallIntegerField(
+        default=0, blank=False, null=False, db_index=True,
+    )
 
     def build_draft(self) -> "PolicyAxis":
         draft = PolicyAxis.objects.create(name=self.name,
@@ -160,6 +169,7 @@ class PolicyAxis(StatusModel):
     class Meta(StatusModel.Meta):
         verbose_name = _('Quality policy axis')
         verbose_name_plural = _('Quality policy axes')
+        ordering = ['model_order']
 
 
 class Contribution(models.Model):
