@@ -7,7 +7,7 @@ source = "vcs"
 fallback-version = "0.1.0"
 
 [tool.hatch.build.hooks.vcs]
-version-file = "iso9001/version.py"
+version-file = "iso9001/iso9001/version.py"
 
 [project]
 name = "iso9001-s-ball"

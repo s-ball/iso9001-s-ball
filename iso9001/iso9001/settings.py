@@ -13,6 +13,12 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 from pathlib import Path
 from decouple import config, Csv
 
+try:
+    from .version import version as APP_VERSION
+except ImportError:
+    APP_VERSION = '0.0.0'
+
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -68,6 +74,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'core.context_processor.set_version'
             ],
         },
     },
