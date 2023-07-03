@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 from decouple import config, Csv
+from ast import literal_eval
 
 try:
     from .version import version as APP_VERSION
@@ -86,12 +87,12 @@ WSGI_APPLICATION = 'iso9001.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
-DATABASES = {
+DATABASES = config('DATABASES', default={
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
-}
+}, cast=lambda val: literal_eval(val) if isinstance(val, str) else val)
 
 
 # Password validation
