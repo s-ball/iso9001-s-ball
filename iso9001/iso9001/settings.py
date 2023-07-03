@@ -141,3 +141,5 @@ LOGIN_REDIRECT_URL = '/'
 # EMAIL config
 EMAIL_BACKEND = config('EMAIL_BACKEND',
                        default='django.core.mail.backends.smtp.EmailBackend')
+
+STATIC_ROOT = config('STATIC_ROOT', default=BASE_DIR / 'static')
