@@ -143,3 +143,5 @@ EMAIL_BACKEND = config('EMAIL_BACKEND',
                        default='django.core.mail.backends.smtp.EmailBackend')
 
 STATIC_ROOT = config('STATIC_ROOT', default=BASE_DIR / 'static')
+
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
