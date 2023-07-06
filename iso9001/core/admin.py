@@ -9,7 +9,7 @@ from django.utils.translation import ngettext, gettext as _
 
 from adminsortable2.admin import SortableAdminMixin
 
-from .models import Process, PolicyAxis, StatusModel, Contribution
+from .models import Process, PolicyAxis, StatusModel, Contribution, Objective
 
 
 # Register your models here.
@@ -89,3 +89,14 @@ class ContributionAdmin(admin.ModelAdmin):
             status=StatusModel.Status.APPLICABLE,
         )
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+
+
+@admin.register(Objective)
+class ObjectiveAdmin(admin.ModelAdmin):
+    """Add fields into the list view"""
+    list_display = ['__str__', 'name', 'value', 'get_status']
+
+    @admin.display(description=_('Process status'))
+    def get_status(self, obj: Objective) -> str:
+        """Gives the status of the associated process"""
+        return obj.process.get_status_display()

@@ -189,3 +189,19 @@ class Contribution(models.Model):
     class Meta:
         verbose_name = _('Contribution')
         verbose_name_plural = _('Contributions')
+
+
+class Objective(models.Model):
+    process = models.ForeignKey(Process, on_delete=models.CASCADE)
+    name = models.SlugField(max_length=4)
+    desc = models.CharField(max_length=64)
+    long_desc = models.TextField()
+    value = models.CharField(max_length=32)
+
+    def __str__(self):
+        return f'{self.process.name}-{self.name}'
+
+    class Meta:
+        verbose_name = _('Objective')
+        verbose_name_plural = _('Objectives')
+        ordering = ['process__name', 'name']
