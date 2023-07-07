@@ -2,7 +2,7 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
-from typing import Collection, Optional
+from typing import Collection, Optional, Type
 
 from django.db import models
 from django.db.models import Q, F
@@ -11,6 +11,7 @@ from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
 from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
+from django.conf import settings
 
 from concurrency.fields import AutoIncVersionField
 
@@ -117,10 +118,17 @@ class StatusModel(models.Model):
         )]
 
 
+DocumentModel: Type[models.Model] = getattr(
+    settings, "DOCUMENT_MODEL", None)
+
+
 class Process(StatusModel):
     name = models.SlugField(max_length=8)
     desc = models.TextField()
     pilots = models.ManyToManyField(to=User, blank=True)
+    if DocumentModel is not None:
+        doc = models.ForeignKey(DocumentModel, on_delete=models.RESTRICT,
+                                null=True, blank=True, related_name='+')
 
     model_order = models.PositiveSmallIntegerField(
         default=0, blank=False, null=False, db_index=True,
