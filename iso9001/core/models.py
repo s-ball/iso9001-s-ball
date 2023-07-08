@@ -2,7 +2,7 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
-from typing import Collection, Optional, Type
+from typing import Any, Collection, Optional
 
 from django.db import models
 from django.db.models import Q, F
@@ -10,8 +10,9 @@ from django.contrib.auth import get_user_model
 from django.forms import ValidationError
 from django.utils.translation import gettext_lazy as _
 from django.utils import timezone
-from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist
-from django.conf import settings
+from django.core.exceptions import NON_FIELD_ERRORS, ObjectDoesNotExist, \
+    PermissionDenied
+from django.db import transaction
 
 from concurrency.fields import AutoIncVersionField
 
@@ -25,6 +26,7 @@ class StatusModel(models.Model):
         DRAFT = 0, _('Draft')
         APPLICABLE = 1, _('Applicable')
         RETIRED = 2, _('Retired')
+        AUTHORIZED = 3, _('authorized')
 
     status = models.SmallIntegerField(choices=Status.choices,
                                       default=Status.DRAFT)
@@ -33,6 +35,7 @@ class StatusModel(models.Model):
     # for django-concurrency optimistic locking
     version = AutoIncVersionField()
 
+    @transaction.atomic
     def retire(self, end_date: datetime.date = None) -> None:
         """Pass a model to the retired state"""
         if self.status != StatusModel.Status.APPLICABLE:
@@ -57,13 +60,14 @@ class StatusModel(models.Model):
         if self.status == StatusModel.Status.APPLICABLE:
             raise ValueError(_('{} is already in applicable status')
                              .format(str(self)))
-        prevs = self.__class__.objects.filter(
-            name=self.name, status=StatusModel.Status.APPLICABLE)
-        if prevs:
-            prevs[0].retire()
-        self.status = StatusModel.Status.APPLICABLE
-        self.end_date = None
-        self.save()
+        with transaction.atomic():
+            prevs = self.__class__.objects.filter(
+                name=self.name, status=StatusModel.Status.APPLICABLE)
+            if prevs:
+                prevs[0].retire()
+            self.status = StatusModel.Status.APPLICABLE
+            self.end_date = None
+            self.save()
 
     def clean_fields(self, exclude: Optional[Collection[str]] = ...) -> None:
         """status field should not be changed in a form"""
@@ -118,17 +122,108 @@ class StatusModel(models.Model):
         )]
 
 
-DocumentModel: Type[models.Model] = getattr(
-    settings, "DOCUMENT_MODEL", None)
+# pylint: disable=abstract-method
+class AbstractDocument(StatusModel):
+    """Abstract model for documented information"""
+    class Meta(StatusModel.Meta):
+        abstract = True
+
+    process = models.ForeignKey('Process', on_delete=models.CASCADE)
+    name = models.CharField(max_length=64)
+    pdf = models.FileField(upload_to='docs')
+
+
+# pylint: enable=abstract-method
+class Document(AbstractDocument):
+    """Concrete model for applicable (versioned) documents"""
+    parents = models.ManyToManyField('self', symmetrical=False,
+                                     related_name='children')
+    autority = models.ForeignKey(User, on_delete=models.PROTECT,
+                                 null=True, blank=True)
+
+    @transaction.atomic
+    def build_draft(self) -> 'Document':
+        """Build a draft copy.
+
+Make the draft have same parents as the original document and
+make all children of the original document have the draft as parent."""
+        draft = Document.objects.create(
+            process=self.process, name=self.name,
+            status=StatusModel.Status.DRAFT)
+        draft.parents.set((self.parents.order_by('-start_date')[:1]))
+        for child in self.children.all():
+            child.parents.add(draft)
+            child.save()
+        draft.save()
+        return draft
+
+    def make_applicable(self) -> None:
+        """A document shall be applicable only if its parent and process are.
+
+Actually it must have no parent at all or one applicable parent.
+When making a document applicable, all its children in authorized status
+are made applicable too."""
+        if self.process.status != StatusModel.Status.APPLICABLE:
+            raise ValueError('Process is not applicable')
+        if self.status not in (StatusModel.Status.AUTHORIZED,
+                               StatusModel.Status.RETIRED):
+            raise ValueError('This document has not be authorized')
+        if self.parents.exists():
+            if not self.parents.filter(
+                    status=StatusModel.Status.APPLICABLE).exists():
+                raise ValueError('This document has no applicable parent')
+        with transaction.atomic():
+            super().make_applicable()
+            for child in self.children.filter(
+                    status=StatusModel.Status.AUTHORIZED):
+                child.make_applicable()
+
+    def autorize(self, user: User):
+        """A draft shall be authorized before it is made applicable"""
+        if self.status != StatusModel.Status.DRAFT:
+            raise ValueError('Only draft document can be authorized')
+        if not user.has_perm('core.authorize_document'):
+            raise PermissionDenied
+        with transaction.atomic():
+            self.autority = user
+            self.status = StatusModel.Status.AUTHORIZED
+            self.save()
+
+    def retire(self, end_date: datetime.date = None) -> None:
+        with transaction.atomic():
+            draft_parent = self.parents.filter(
+                status=StatusModel.Status.DRAFT).first()
+            if draft_parent is not None:
+                draft = self.build_draft()
+                draft.parents.set((draft_parent,))
+                self.parents.remove(draft_parent)
+            super().retire(end_date)
+            for child in self.children.all():
+                child.retire(end_date)
+
+    class Meta(AbstractDocument.Meta):
+        permissions = [('authorize_document', _('May authorize documents'))]
+
+
+class ProcessManager(models.Manager):
+    """Custom manager to initialize a document at creation time"""
+    def create(self, **kwargs: Any) -> 'Process':
+        """Set an empty document for every new Process object"""
+        with transaction.atomic():
+            proc = super().create(**kwargs)
+            proc.doc = Document.objects.create(
+                process=proc, status=proc.status, name=proc.name,
+                start_date=proc.start_date, end_date=proc.end_date)
+            proc.save()
+        return proc
 
 
 class Process(StatusModel):
     name = models.SlugField(max_length=8)
     desc = models.TextField()
     pilots = models.ManyToManyField(to=User, blank=True)
-    if DocumentModel is not None:
-        doc = models.ForeignKey(DocumentModel, on_delete=models.RESTRICT,
-                                null=True, blank=True, related_name='+')
+    doc = models.ForeignKey(Document, on_delete=models.RESTRICT,
+                            null=True, blank=True, related_name='+')
 
     model_order = models.PositiveSmallIntegerField(
         default=0, blank=False, null=False, db_index=True,
@@ -137,11 +232,24 @@ class Process(StatusModel):
     def build_draft(self) -> "Process":
         draft = Process.objects.create(name=self.name, desc=self.desc)
         draft.pilots.set(self.pilots.all())
+        draft.doc = self.doc.build_draft()
         draft.save()
         return draft
 
+    def make_applicable(self) -> None:
+        super().make_applicable()
+        self.doc.process = self
+        self.doc.make_applicable()
+
+    @transaction.atomic
+    def retire(self, end_date: datetime.date = None) -> None:
+        super().retire(end_date)
+        self.doc.retire(end_date)
+
     def __str__(self):
         return str(self.name)
+
+    objects = ProcessManager()
 
     class Meta(StatusModel.Meta):
         verbose_name = _('Process')

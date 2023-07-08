@@ -7,7 +7,8 @@ from django.forms import ValidationError
 from django.test import TestCase
 from django.utils import timezone
 from concurrency.exceptions import RecordModifiedError
-from core.models import Process, User, PolicyAxis, Contribution, StatusModel
+from core.models import Process, User, PolicyAxis, Contribution, \
+    StatusModel
 
 
 # Create your tests here.
@@ -21,6 +22,10 @@ class TestProcess(TestCase):
         cls.user2 = User.objects.create(username='User2')
         is_qm = Permission.objects.get(codename='is_qm',
                                        content_type__app_label='core')
+        authorize = Permission.objects.get(
+            codename='authorize_document',
+        )
+        cls.user2.user_permissions.add(authorize)
         cls.qm.user_permissions.add(is_qm)
 
     def test_perms(self) -> None:
@@ -52,6 +57,7 @@ class TestProcess(TestCase):
         """Make applicable a new Process model"""
         proc = Process.objects.create(name='P1',
                                       desc='Produce something')
+        proc.doc.autorize(self.user2)
         proc.make_applicable()
         proc.refresh_from_db()
         self.assertEqual(StatusModel.Status.APPLICABLE, proc.status)
@@ -64,6 +70,7 @@ class TestProcess(TestCase):
         proc.pilots.add(self.user1)
         proc.pilots.add(self.qm)
         draft = proc.build_draft()
+        draft.doc.autorize(self.user2)
         draft.make_applicable()
         # make applicable changed proc in database only...
         proc.refresh_from_db()
@@ -149,8 +156,7 @@ class TestStatus(TestCase):
 
     def test_change_applicable(self) -> None:
         """Retire a process and create a new applicable one"""
-        self.p2.status = StatusModel.Status.RETIRED
-        self.p2.save()
+        self.p2.retire()
         p21 = Process.objects.create(name='P2', desc='Produce nothing',
                                      status=StatusModel.Status.APPLICABLE)
         self.assertNotEqual(p21.pk, self.p2.pk)
