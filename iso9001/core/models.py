@@ -2,7 +2,7 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
-from typing import Any, Collection, Optional
+from typing import Any, Collection, Optional, TypeVar
 
 from django.db import models
 from django.db.models import Q, F
@@ -21,6 +21,10 @@ User = get_user_model()
 
 
 # Create your models here.
+# Will be used for generic cloning
+SM = TypeVar('SM', bound='StatusModel')
+
+
 class StatusModel(models.Model):
     class Status(models.IntegerChoices):
         DRAFT = 0, _('Draft')
@@ -34,40 +38,69 @@ class StatusModel(models.Model):
     end_date = models.DateField(null=True, blank=True)
     # for django-concurrency optimistic locking
     version = AutoIncVersionField()
+    previous = models.OneToOneField('self', related_name='successor',
+                                    on_delete=models.SET_NULL,
+                                    null=True, blank=True, default=None)
 
-    @transaction.atomic
-    def retire(self, end_date: datetime.date = None) -> None:
-        """Pass a model to the retired state"""
+    def clone(self: SM) -> SM:
+        """Creates a copy of self.
+(expected to be overridden in subclasses)
+"""
+        raise NotImplementedError
+
+    def build_draft(self: SM) -> SM:
+        """Builds a draft copy of self using clone"""
         if self.status != StatusModel.Status.APPLICABLE:
             raise ValueError(_('{} is not in applicable status')
                              .format(str(self)))
-        if end_date is None:
-            end_date = datetime.date.today()
-        self.status = StatusModel.Status.RETIRED
-        self.end_date = end_date
-        self.save()
-
-    def build_draft(self) -> "StatusModel":
-        """Builds a draft copy of self
-        (expected to be overridden in subclasses)
-        """
-        raise NotImplementedError()
+        with transaction.atomic():
+            draft = self.clone()
+            draft.status = StatusModel.Status.DRAFT
+            draft.previous = self
+            draft.start_date = timezone.now()
+            draft.save()
+        return draft
 
     def make_applicable(self) -> None:
         """Pass a draft into applicable state"""
         # search for a previous version
-        # pylint: disable=no-member
-        if self.status == StatusModel.Status.APPLICABLE:
-            raise ValueError(_('{} is already in applicable status')
+        if self.status in (StatusModel.Status.APPLICABLE,
+                           StatusModel.Status.RETIRED):
+            raise ValueError(_('{} is already in inacceptable status')
                              .format(str(self)))
         with transaction.atomic():
-            prevs = self.__class__.objects.filter(
-                name=self.name, status=StatusModel.Status.APPLICABLE)
-            if prevs:
-                prevs[0].retire()
+            dat = timezone.now()
+            if self.previous is not None and \
+                    self.previous.status != StatusModel.Status.RETIRED:
+                self.previous.retire(dat)
             self.status = StatusModel.Status.APPLICABLE
             self.end_date = None
+            self.start_date = dat
             self.save()
+
+    def retire(self, end_date: datetime.datetime = None) -> None:
+        """Pass a model to the retired state"""
+        if self.status != StatusModel.Status.APPLICABLE:
+            raise ValueError(_('{} is not in applicable status')
+                             .format(str(self)))
+        with transaction.atomic():
+            if end_date is None:
+                end_date = timezone.now()
+            self.status = StatusModel.Status.RETIRED
+            self.end_date = end_date
+            self.save()
+
+    def unretire(self) -> None:
+        """Revert an incorrect retirement"""
+        if self.status != StatusModel.Status.RETIRED:
+            raise ValueError(_('{} is not in retired status')
+                             .format(str(self)))
+        if self.__class__.objects.filter(previous=self).exists():
+            raise ValueError(_('{} has already a successor')
+                             .format(str(self)))
+        self.status = StatusModel.Status.APPLICABLE
+        self.end_date = None
+        self.save()
 
     def clean_fields(self, exclude: Optional[Collection[str]] = ...) -> None:
         """status field should not be changed in a form"""
@@ -141,15 +174,16 @@ class Document(AbstractDocument):
     autority = models.ForeignKey(User, on_delete=models.PROTECT,
                                  null=True, blank=True)
 
+    def clone(self: SM) -> SM:
+        return Document(process=self.process, name=self.name)
+
     @transaction.atomic
     def build_draft(self) -> 'Document':
         """Build a draft copy.
 
 Make the draft have same parents as the original document and
 make all children of the original document have the draft as parent."""
-        draft = Document.objects.create(
-            process=self.process, name=self.name,
-            status=StatusModel.Status.DRAFT)
+        draft = super().build_draft()
         draft.parents.set((self.parents.order_by('-start_date')[:1]))
         for child in self.children.all():
             child.parents.add(draft)
@@ -165,8 +199,7 @@ When making a document applicable, all its children in authorized status
 are made applicable too."""
         if self.process.status != StatusModel.Status.APPLICABLE:
             raise ValueError('Process is not applicable')
-        if self.status not in (StatusModel.Status.AUTHORIZED,
-                               StatusModel.Status.RETIRED):
+        if self.status != StatusModel.Status.AUTHORIZED:
             raise ValueError('This document has not be authorized')
         if self.parents.exists():
             if not self.parents.filter(
@@ -201,6 +234,15 @@ are made applicable too."""
             for child in self.children.all():
                 child.retire(end_date)
 
+    @transaction.atomic
+    def unretire(self) -> None:
+        end_date = self.end_date
+        super().unretire()
+        for child in self.children.filter(
+            status=StatusModel.Status.RETIRED, end_date=end_date,
+        ):
+            child.unretire()
+
     class Meta(AbstractDocument.Meta):
         permissions = [('authorize_document', _('May authorize documents'))]
 
@@ -229,13 +271,18 @@ class Process(StatusModel):
         default=0, blank=False, null=False, db_index=True,
     )
 
+    def clone(self) -> 'Process':
+        return Process(name=self.name, desc=self.desc)
+
+    @transaction.atomic()
     def build_draft(self) -> "Process":
-        draft = Process.objects.create(name=self.name, desc=self.desc)
+        draft = super().build_draft()
         draft.pilots.set(self.pilots.all())
         draft.doc = self.doc.build_draft()
         draft.save()
         return draft
 
+    @transaction.atomic()
     def make_applicable(self) -> None:
         super().make_applicable()
         self.doc.process = self
@@ -270,11 +317,14 @@ class PolicyAxis(StatusModel):
         default=0, blank=False, null=False, db_index=True,
     )
 
+    def clone(self) -> StatusModel:
+        return PolicyAxis(name=self.name,
+                          desc=self.desc,
+                          long_desc=self.long_desc,
+                          reviewed=self.reviewed)
+
     def build_draft(self) -> "PolicyAxis":
-        draft = PolicyAxis.objects.create(name=self.name,
-                                          desc=self.desc,
-                                          long_desc=self.long_desc,
-                                          reviewed=self.reviewed)
+        draft = super().build_draft()
         draft.processes.set(self.processes.all())
         draft.save()
         return draft

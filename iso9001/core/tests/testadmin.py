@@ -31,12 +31,10 @@ class TestStatusModelAdmin(TestCase):
         self.assertEqual(200, resp.status_code)
 
     def test_make_applicable_2(self) -> None:
-        """Make p2 and p4 applicable when p4 is retired"""
+        """Make p2 and p4 applicable"""
         client = Client()
         client.force_login(self.admin)
         self.p4.doc.autorize(self.admin)
-        self.p4.make_applicable()
-        self.p4.retire()
         self.p2.doc.autorize(self.admin)
         self.p2.save()
         resp = client.post('/en/admin/core/process/',
@@ -237,6 +235,8 @@ class TestStatusModelAdmin(TestCase):
         user1.save()
         user1.refresh_from_db()
         self.assertTrue(user1.has_perm('core.add_process'))
+        self.p1.doc.autorize(self.admin)
+        self.p1.make_applicable()
         client = Client()
         client.force_login(user1)
         resp = client.post('/en/admin/core/process/',

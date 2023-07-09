@@ -91,7 +91,7 @@ class TestProcess(TestCase):
                                       desc='Produce something',
                                       status=StatusModel.Status.RETIRED,
                                       end_date=timezone.now())
-        proc.make_applicable()
+        proc.unretire()
         proc.refresh_from_db()
         self.assertIsNone(proc.end_date)
         self.assertEqual(StatusModel.Status.APPLICABLE, proc.status)
@@ -205,13 +205,13 @@ class Incorrect(StatusModel):
     name = models.CharField(max_length=16, null=True)
 
 
-class TestNotOverriddenBuildDraft(TestCase):
-    """Test calling the non overridden build_class"""
+class TestNotOverriddenClone(TestCase):
+    """Test calling the non overridden clone"""
     def test_instance(self) -> None:
         """Actual test"""
         instance = Incorrect()
         with self.assertRaises(NotImplementedError):
-            instance.build_draft()
+            instance.clone()
 
 
 class TestOptimisticLocking(TestCase):
