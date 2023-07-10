@@ -165,11 +165,16 @@ class AbstractDocument(StatusModel):
     name = models.CharField(max_length=64)
     pdf = models.FileField(upload_to='docs')
 
+    def __str__(self):
+        """Display name"""
+        return f'{self.process.name}-{self.name}'
+
 
 # pylint: enable=abstract-method
 class Document(AbstractDocument):
     """Concrete model for applicable (versioned) documents"""
     parents = models.ManyToManyField('self', symmetrical=False,
+                                     blank=True,
                                      related_name='children')
     autority = models.ForeignKey(User, on_delete=models.PROTECT,
                                  null=True, blank=True)
@@ -211,10 +216,12 @@ are made applicable too."""
                     status=StatusModel.Status.AUTHORIZED):
                 child.make_applicable()
 
-    def autorize(self, user: User):
+    def authorize(self, user: User):
         """A draft shall be authorized before it is made applicable"""
         if self.status != StatusModel.Status.DRAFT:
             raise ValueError('Only draft document can be authorized')
+        if self.pdf is None:
+            raise ValueError('This document contains no file')
         if not user.has_perm('core.authorize_document'):
             raise PermissionDenied
         with transaction.atomic():
@@ -245,6 +252,7 @@ are made applicable too."""
 
     class Meta(AbstractDocument.Meta):
         permissions = [('authorize_document', _('May authorize documents'))]
+        ordering = ('process', 'name', '-start_date')
 
 
 class ProcessManager(models.Manager):
@@ -278,7 +286,8 @@ class Process(StatusModel):
     def build_draft(self) -> "Process":
         draft = super().build_draft()
         draft.pilots.set(self.pilots.all())
-        draft.doc = self.doc.build_draft()
+        if self.doc:
+            draft.doc = self.doc.build_draft()
         draft.save()
         return draft
 
@@ -291,7 +300,8 @@ class Process(StatusModel):
     @transaction.atomic
     def retire(self, end_date: datetime.date = None) -> None:
         super().retire(end_date)
-        self.doc.retire(end_date)
+        if self.doc:
+            self.doc.retire(end_date)
 
     def __str__(self):
         return str(self.name)

@@ -10,6 +10,7 @@ from django.utils.translation import ngettext, gettext as _
 from adminsortable2.admin import SortableAdminMixin
 
 from .models import Process, PolicyAxis, StatusModel, Contribution, Objective
+from .models import Document
 
 
 # Register your models here.
@@ -19,16 +20,17 @@ class StatusModelAdmin(SortableAdminMixin, admin.ModelAdmin):
 
     Provides actions to change the status through the model methods.
     """
+    pre_applicable_status = StatusModel.Status.DRAFT
+
     @admin.action(description=_("Make applicable"), permissions=['status'])
     def make_applicable(self, request, queryset):
         """Bump a bunch of objects into applicable status"""
         obj: StatusModel
         count = 0
-        for obj in queryset:
-            if obj.status != StatusModel.Status.APPLICABLE:
-                obj.make_applicable()
-                self.log_change(request, obj, "made applicable")
-                count += 1
+        for obj in queryset.filter(status=self.pre_applicable_status):
+            obj.make_applicable()
+            self.log_change(request, obj, "made applicable")
+            count += 1
         self.message_user(request, ngettext(
             '{count} object was made applicable',
             '{count} objects were made applicable',
@@ -41,7 +43,7 @@ class StatusModelAdmin(SortableAdminMixin, admin.ModelAdmin):
         """Create draft copies"""
         obj: StatusModel
         count = 0
-        for obj in queryset:
+        for obj in queryset.filter(status=StatusModel.Status.APPLICABLE):
             draft = obj.build_draft()
             self.log_addition(request, draft, "created as draft")
             count += 1
@@ -57,11 +59,10 @@ class StatusModelAdmin(SortableAdminMixin, admin.ModelAdmin):
         """Take a bunch of objects into retired status"""
         obj: StatusModel
         count = 0
-        for obj in queryset:
-            if obj.status == StatusModel.Status.APPLICABLE:
-                obj.retire()
-                self.log_change(request, obj, "retired")
-                count += 1
+        for obj in queryset.filter(status=StatusModel.Status.APPLICABLE):
+            obj.retire()
+            self.log_change(request, obj, "retired")
+            count += 1
         self.message_user(request, ngettext(
             '{count} object was retired',
             '{count} objects were retired',
@@ -100,3 +101,34 @@ class ObjectiveAdmin(admin.ModelAdmin):
     def get_status(self, obj: Objective) -> str:
         """Gives the status of the associated process"""
         return obj.process.get_status_display()
+
+
+@admin.register(Document)
+class DocumentAdmin(StatusModelAdmin):
+    """Custom admin class to handle authorizations"""
+    pre_applicable_status = StatusModel.Status.AUTHORIZED
+
+    @admin.action(description=_("Authorize"), permissions=['status'])
+    def authorize(self, request, queryset):
+        """Bump draft documents to authorized status"""
+        obj: Document
+        count = 0
+        for obj in queryset.filter(status=StatusModel.Status.DRAFT):
+            obj.authorize(request.user)
+            self.log_change(request, obj, "authorized")
+            count += 1
+        self.message_user(request, ngettext(
+            '{count} object was authorized',
+            '{count} objects were authorized',
+            count
+            ).format(count=count),
+            messages.SUCCESS if count > 0 else messages.WARNING)
+
+    @admin.display(description=_('Process status'))
+    def process_status(self, obj) -> str:
+        """Display the status of the associated process"""
+        return obj.process.get_status_display()
+
+    actions = ['make_applicable', 'build_draft', 'retire', 'authorize']
+    list_display = ['__str__', 'status', 'process_status',
+                    'start_date', 'end_date']

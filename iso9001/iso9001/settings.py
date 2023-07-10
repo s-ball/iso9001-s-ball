@@ -145,3 +145,6 @@ EMAIL_BACKEND = config('EMAIL_BACKEND',
 STATIC_ROOT = config('STATIC_ROOT', default=BASE_DIR / 'static')
 
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+MEDIA_ROOT = config('MEDIA_ROOT', default=BASE_DIR / 'media')
+MEDIA_URL = 'media/'

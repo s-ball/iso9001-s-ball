@@ -34,8 +34,8 @@ class TestStatusModelAdmin(TestCase):
         """Make p2 and p4 applicable"""
         client = Client()
         client.force_login(self.admin)
-        self.p4.doc.autorize(self.admin)
-        self.p2.doc.autorize(self.admin)
+        self.p4.doc.authorize(self.admin)
+        self.p2.doc.authorize(self.admin)
         self.p2.save()
         resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
@@ -70,9 +70,9 @@ class TestStatusModelAdmin(TestCase):
         """
         client = Client()
         client.force_login(self.admin)
-        self.p2.doc.autorize(self.admin)
+        self.p2.doc.authorize(self.admin)
         self.p2.make_applicable()
-        self.p4.doc.autorize(self.admin)
+        self.p4.doc.authorize(self.admin)
         resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
                             'select_across': '0',
@@ -106,9 +106,9 @@ class TestStatusModelAdmin(TestCase):
         """
         client = Client()
         client.force_login(self.admin)
-        self.p2.doc.autorize(self.admin)
+        self.p2.doc.authorize(self.admin)
         self.p2.make_applicable()
-        self.p4.doc.autorize(self.admin)
+        self.p4.doc.authorize(self.admin)
         self.p4.make_applicable()
         resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',
@@ -135,7 +135,7 @@ class TestStatusModelAdmin(TestCase):
         """
         client = Client()
         client.force_login(self.admin)
-        self.p3.doc.autorize(self.admin)
+        self.p3.doc.authorize(self.admin)
         self.p3.make_applicable()
         resp = client.post('/en/admin/core/process/',
                            {'action': 'retire',
@@ -167,7 +167,7 @@ class TestStatusModelAdmin(TestCase):
         """Builds a draft from an applicable process"""
         client = Client()
         client.force_login(self.admin)
-        self.p1.doc.autorize(self.admin)
+        self.p1.doc.authorize(self.admin)
         self.p1.make_applicable()
         self.p1.pilots.add(self.admin)
         resp = client.post('/en/admin/core/process/',
@@ -235,7 +235,7 @@ class TestStatusModelAdmin(TestCase):
         user1.save()
         user1.refresh_from_db()
         self.assertTrue(user1.has_perm('core.add_process'))
-        self.p1.doc.autorize(self.admin)
+        self.p1.doc.authorize(self.admin)
         self.p1.make_applicable()
         client = Client()
         client.force_login(user1)
@@ -290,7 +290,7 @@ class TestStatusModelAdmin(TestCase):
         self.assertTrue(user1.has_perm('core.is_qm'))
         client = Client()
         client.force_login(user1)
-        self.p1.doc.autorize(self.admin)
+        self.p1.doc.authorize(self.admin)
         self.p1.save()
         resp = client.post('/en/admin/core/process/',
                            {'action': 'make_applicable',

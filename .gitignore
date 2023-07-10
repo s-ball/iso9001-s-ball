@@ -8,3 +8,4 @@ db.sqlite3
 htmlcov
 version.py
 dist
+/iso9001/media

@@ -57,7 +57,7 @@ class TestProcess(TestCase):
         """Make applicable a new Process model"""
         proc = Process.objects.create(name='P1',
                                       desc='Produce something')
-        proc.doc.autorize(self.user2)
+        proc.doc.authorize(self.user2)
         proc.make_applicable()
         proc.refresh_from_db()
         self.assertEqual(StatusModel.Status.APPLICABLE, proc.status)
@@ -70,7 +70,7 @@ class TestProcess(TestCase):
         proc.pilots.add(self.user1)
         proc.pilots.add(self.qm)
         draft = proc.build_draft()
-        draft.doc.autorize(self.user2)
+        draft.doc.authorize(self.user2)
         draft.make_applicable()
         # make applicable changed proc in database only...
         proc.refresh_from_db()
