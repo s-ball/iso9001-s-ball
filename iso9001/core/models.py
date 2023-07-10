@@ -215,6 +215,10 @@ are made applicable too."""
             for child in self.children.filter(
                     status=StatusModel.Status.AUTHORIZED):
                 child.make_applicable()
+            # If previous document was the process document, replace it
+            if (self.process.doc and self.previous
+                    and self.process.doc == self.previous):
+                self.process.doc = self
 
     def authorize(self, user: User):
         """A draft shall be authorized before it is made applicable"""
@@ -230,6 +234,10 @@ are made applicable too."""
             self.save()
 
     def retire(self, end_date: datetime.date = None) -> None:
+        if (self.process.doc and self.process.doc == self
+                and self.process.status == StatusModel.Status.APPLICABLE):
+            raise ValueError('Cannot remove the main document'
+                             ' for an applicable process')
         with transaction.atomic():
             draft_parent = self.parents.filter(
                 status=StatusModel.Status.DRAFT).first()

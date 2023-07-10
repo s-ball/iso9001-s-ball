@@ -30,6 +30,7 @@ dependencies = [
     "python-decouple",
     "django-concurrency",
     "django-admin-sortable2",
+    "django-cleanup",
 ]
 
 [project.optional-dependencies]
