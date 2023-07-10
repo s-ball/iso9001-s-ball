@@ -2,3 +2,4 @@ django
 urls
 urlpatterns
 pyright
+qm

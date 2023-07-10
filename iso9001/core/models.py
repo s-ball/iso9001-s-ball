@@ -50,7 +50,8 @@ class StatusModel(models.Model):
 
     def build_draft(self: SM) -> SM:
         """Builds a draft copy of self using clone"""
-        if self.status != StatusModel.Status.APPLICABLE:
+        if self.status not in (StatusModel.Status.APPLICABLE,
+                               StatusModel.Status.RETIRED):
             raise ValueError(_('{} is not in applicable status')
                              .format(str(self)))
         with transaction.atomic():
@@ -72,13 +73,14 @@ class StatusModel(models.Model):
             dat = timezone.now()
             if self.previous is not None and \
                     self.previous.status != StatusModel.Status.RETIRED:
-                self.previous.retire(dat)
+                self.previous.retire(dat, recurse=False)
             self.status = StatusModel.Status.APPLICABLE
             self.end_date = None
             self.start_date = dat
             self.save()
 
-    def retire(self, end_date: datetime.datetime = None) -> None:
+    # pylint: disable=unused-argument
+    def retire(self, end_date: datetime.datetime = None, recurse=True) -> None:
         """Pass a model to the retired state"""
         if self.status != StatusModel.Status.APPLICABLE:
             raise ValueError(_('{} is not in applicable status')
@@ -90,6 +92,7 @@ class StatusModel(models.Model):
             self.end_date = end_date
             self.save()
 
+    # pylint: enable=unused-argument
     def unretire(self) -> None:
         """Revert an incorrect retirement"""
         if self.status != StatusModel.Status.RETIRED:
@@ -101,6 +104,13 @@ class StatusModel(models.Model):
         self.status = StatusModel.Status.APPLICABLE
         self.end_date = None
         self.save()
+
+    def revert(self):
+        """Remove the authorization to be able to modify the draft"""
+        if self.status != self.Status.AUTHORIZED:
+            raise ValueError(_('{} is not in authorized status')
+                             .format(str(self)))
+        self.status = self.Status.DRAFT
 
     def clean_fields(self, exclude: Optional[Collection[str]] = ...) -> None:
         """status field should not be changed in a form"""
@@ -160,6 +170,14 @@ class AbstractDocument(StatusModel):
     """Abstract model for documented information"""
     class Meta(StatusModel.Meta):
         abstract = True
+        constraints = [models.UniqueConstraint(
+            fields=('process', 'name',),
+            condition=models.Q(status=1),
+            name='%(class)s_name'
+        ), models.CheckConstraint(
+            name='%(class)s_dates',
+            check=Q(end_date__gte=F('start_date')) | Q(end_date=None)
+        )]
 
     process = models.ForeignKey('Process', on_delete=models.CASCADE)
     name = models.CharField(max_length=64)
@@ -211,14 +229,14 @@ are made applicable too."""
                     status=StatusModel.Status.APPLICABLE).exists():
                 raise ValueError('This document has no applicable parent')
         with transaction.atomic():
-            super().make_applicable()
-            for child in self.children.filter(
-                    status=StatusModel.Status.AUTHORIZED):
-                child.make_applicable()
             # If previous document was the process document, replace it
             if (self.process.doc and self.previous
                     and self.process.doc == self.previous):
                 self.process.doc = self
+            super().make_applicable()
+            for child in self.children.filter(
+                    status=StatusModel.Status.AUTHORIZED):
+                child.make_applicable()
 
     def authorize(self, user: User):
         """A draft shall be authorized before it is made applicable"""
@@ -233,7 +251,8 @@ are made applicable too."""
             self.status = StatusModel.Status.AUTHORIZED
             self.save()
 
-    def retire(self, end_date: datetime.date = None) -> None:
+    def retire(self, end_date: datetime.date = None, recurse: bool = True
+               ) -> None:
         if (self.process.doc and self.process.doc == self
                 and self.process.status == StatusModel.Status.APPLICABLE):
             raise ValueError('Cannot remove the main document'
@@ -246,8 +265,9 @@ are made applicable too."""
                 draft.parents.set((draft_parent,))
                 self.parents.remove(draft_parent)
             super().retire(end_date)
-            for child in self.children.all():
-                child.retire(end_date)
+            if recurse:
+                for child in self.children.all():
+                    child.retire(end_date)
 
     @transaction.atomic
     def unretire(self) -> None:
@@ -306,10 +326,10 @@ class Process(StatusModel):
         self.doc.make_applicable()
 
     @transaction.atomic
-    def retire(self, end_date: datetime.date = None) -> None:
+    def retire(self, end_date: datetime.date = None, recurse=True) -> None:
         super().retire(end_date)
         if self.doc:
-            self.doc.retire(end_date)
+            self.doc.retire(end_date, recurse)
 
     def __str__(self):
         return str(self.name)
