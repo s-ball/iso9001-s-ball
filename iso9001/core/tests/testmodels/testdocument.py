@@ -1,4 +1,5 @@
 """Models tests"""
+from unittest.mock import patch
 from django.contrib.auth.models import Permission
 from django.db import IntegrityError
 from django.test import TestCase
@@ -12,6 +13,9 @@ AUTHORIZED = StatusModel.Status.AUTHORIZED
 
 
 # Create your tests here.
+
+# the patch allows not to care for setting a file in the documents
+@patch('django.core.files.base.File.__bool__', lambda *args: True)
 class TestDocument(TestCase):
     """Tests for the Document model"""
     @classmethod
@@ -68,7 +72,45 @@ class TestDocument(TestCase):
         self.assertEqual(RETIRED, proc1.status)
         self.assertEqual(RETIRED, proc1.doc.status)
 
+    def test_revert(self) -> None:
+        """Revert an authorization"""
+        proc = Process.objects.create(name='P1', desc='.')
+        proc.doc.authorize(self.user1)
+        self.assertEqual(AUTHORIZED, proc.doc.status)
+        proc.doc.revert()
+        self.assertEqual(DRAFT, proc.doc.status)
 
+    def test_wrong_revert(self) -> None:
+        """Revert an authorization"""
+        proc = Process.objects.create(name='P1', desc='.')
+        with self.assertRaises(ValueError):
+            proc.doc.revert()
+
+    def test_make_applicable_wrong_process(self) -> None:
+        """Call make_applicable while process is not"""
+        proc = Process.objects.create(name='P1', desc='.')
+        proc.doc.authorize(self.user1)
+        with self.assertRaises(ValueError):
+            proc.doc.make_applicable()
+
+    def test_make_applicable_wrong_parent(self) -> None:
+        """Call make_applicable with no applicable parent"""
+        proc = Process.objects.create(name='P1', desc='.', status=APPLICABLE)
+        doc1 = Document.objects.create(name='parent', process=proc)
+        doc1.parents.add(proc.doc)
+        doc1.authorize(self.user1)
+        doc2 = Document.objects.create(name='child', process=proc)
+        doc2.parents.add(doc1)
+        # ensure doc1 can be made applicable
+        doc1.make_applicable()
+        doc1.retire(recurse=False)
+        doc2.authorize(self.user1)
+        # but doc2 cannot
+        with self.assertRaises(ValueError):
+            doc2.make_applicable()
+
+
+@patch('django.core.files.base.File.__bool__', lambda *args: True)
 class TestManyDocuments(TestCase):
     """Tests for the a process with a number of documents"""
     @classmethod

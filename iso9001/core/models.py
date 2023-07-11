@@ -242,7 +242,7 @@ are made applicable too."""
         """A draft shall be authorized before it is made applicable"""
         if self.status != StatusModel.Status.DRAFT:
             raise ValueError('Only draft document can be authorized')
-        if self.pdf is None:
+        if not self.pdf:
             raise ValueError('This document contains no file')
         if not user.has_perm('core.authorize_document'):
             raise PermissionDenied
@@ -258,12 +258,6 @@ are made applicable too."""
             raise ValueError('Cannot remove the main document'
                              ' for an applicable process')
         with transaction.atomic():
-            draft_parent = self.parents.filter(
-                status=StatusModel.Status.DRAFT).first()
-            if draft_parent is not None:
-                draft = self.build_draft()
-                draft.parents.set((draft_parent,))
-                self.parents.remove(draft_parent)
             super().retire(end_date)
             if recurse:
                 for child in self.children.all():

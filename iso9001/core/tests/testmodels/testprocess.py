@@ -1,5 +1,6 @@
 """Models tests"""
 import datetime
+from unittest.mock import patch
 
 from django.contrib.auth.models import Permission
 from django.db import IntegrityError
@@ -12,6 +13,7 @@ from core.models import Process, User, PolicyAxis, Contribution, \
 
 
 # Create your tests here.
+@patch('django.core.files.base.File.__bool__', lambda *args: True)
 class TestProcess(TestCase):
     """Tests for Process model"""
     @classmethod
@@ -134,6 +136,7 @@ class TestAxes(TestCase):
         self.assertEqual('A1 : Axis 1', str(self.axis1))
 
 
+@patch('django.core.files.base.File.__bool__', lambda *args: True)
 class TestStatus(TestCase):
     """Tests for multiple version of a model"""
     @classmethod
@@ -161,7 +164,44 @@ class TestStatus(TestCase):
                                      status=StatusModel.Status.APPLICABLE)
         self.assertNotEqual(p21.pk, self.p2.pk)
 
+    def test_wrong_make_applicable(self) -> None:
+        """Call make applicable on a retired process"""
+        self.p2.retire()
+        with self.assertRaises(ValueError):
+            self.p2.make_applicable()
 
+    def test_wrong_retire(self) -> None:
+        """Call retire on a draft process"""
+        with self.assertRaises(ValueError):
+            self.p1.retire()
+
+    def test_twice_retire(self) -> None:
+        """Call retire on an already retired process"""
+        self.p2.retire()
+        with self.assertRaises(ValueError):
+            self.p2.retire()
+
+    def test_unretire(self) -> None:
+        """Retire an just retired process"""
+        self.p2.retire()
+        self.p2.unretire()
+        self.assertIsNone(self.p2.end_date)
+        self.assertEqual(StatusModel.Status.APPLICABLE, self.p2.status)
+
+    def test_unretire_with_successor(self) -> None:
+        """Unretire a process having a draft copy"""
+        self.p2.build_draft()
+        self.p2.retire()
+        with self.assertRaises(ValueError):
+            self.p2.unretire()
+
+    def test_wrong_unretire(self) -> None:
+        """Try to retire a draft"""
+        with self.assertRaises(ValueError):
+            self.p1.unretire()
+
+
+@patch('django.core.files.base.File.__bool__', lambda *args: True)
 class TestChanges(TestCase):
     """Tests when a model can be changed"""
     @classmethod

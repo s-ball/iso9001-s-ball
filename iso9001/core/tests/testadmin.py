@@ -1,5 +1,6 @@
 """Tests for the admin site"""
 
+from unittest.mock import patch
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
@@ -12,6 +13,7 @@ except ImportError:
 User = get_user_model()
 
 
+@patch('django.core.files.base.File.__bool__', lambda *args: True)
 class TestStatusModelAdmin(TestCase):
     """Tests for the StatusModelAdmin class"""
     @classmethod
