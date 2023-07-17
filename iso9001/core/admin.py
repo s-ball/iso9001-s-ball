@@ -14,8 +14,7 @@ from .models import Document
 
 
 # Register your models here.
-@admin.register(Process, PolicyAxis)
-class StatusModelAdmin(SortableAdminMixin, admin.ModelAdmin):
+class BaseStatusModelAdmin(admin.ModelAdmin):
     """ModelAdmin for StatusModel subclasses.
 
     Provides actions to change the status through the model methods.
@@ -75,6 +74,10 @@ class StatusModelAdmin(SortableAdminMixin, admin.ModelAdmin):
         user = request.user
         return user.has_perm('core.is_qm')
 
+@admin.register(Process, PolicyAxis)
+class StatusModelAdmin(SortableAdminMixin, BaseStatusModelAdmin):
+    """Use SortableAdminMixin to be able to sort processes and axes"""
+
     actions = ['make_applicable', 'build_draft', 'retire']
     list_display = ['__str__', 'status', 'start_date', 'end_date']
 
@@ -104,7 +107,7 @@ class ObjectiveAdmin(admin.ModelAdmin):
 
 
 @admin.register(Document)
-class DocumentAdmin(StatusModelAdmin):
+class DocumentAdmin(BaseStatusModelAdmin):
     """Custom admin class to handle authorizations"""
     pre_applicable_status = StatusModel.Status.AUTHORIZED
 

@@ -4,3 +4,4 @@ urlpatterns
 pyright
 qm
 unretire
+pdf
