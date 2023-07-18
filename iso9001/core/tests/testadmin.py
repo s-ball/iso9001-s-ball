@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.test import TestCase, Client
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from core.models import Process, StatusModel
+from core.models import Process, StatusModel, Document
 try:
     from bs4 import BeautifulSoup
 except ImportError:
@@ -24,6 +24,14 @@ class TestStatusModelAdmin(TestCase):
         cls.p2 = Process.objects.create(name='P2', desc='Prod 2')
         cls.p3 = Process.objects.create(name='P3', desc='Prod 3')
         cls.p4 = Process.objects.create(name='P4', desc='Prod 4')
+        cls.p1.doc = Document.objects.create(process=cls.p1, name='.')
+        cls.p2.doc = Document.objects.create(process=cls.p2, name='.')
+        cls.p3.doc = Document.objects.create(process=cls.p3, name='.')
+        cls.p4.doc = Document.objects.create(process=cls.p4, name='.')
+        cls.p1.save()
+        cls.p2.save()
+        cls.p3.save()
+        cls.p4.save()
 
     def test_connect(self) -> None:
         """Just a simple connection to the admin site"""

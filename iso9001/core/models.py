@@ -2,7 +2,7 @@
 # pylint: disable=missing-class-docstring
 # pylint: disable=too-few-public-methods
 import datetime
-from typing import Any, Collection, Optional, TypeVar
+from typing import Collection, Optional, TypeVar
 
 from django.db import models
 from django.db.models import Q, F
@@ -34,8 +34,8 @@ class StatusModel(models.Model):
 
     status = models.SmallIntegerField(choices=Status.choices,
                                       default=Status.DRAFT)
-    start_date = models.DateField(default=datetime.date.today)
-    end_date = models.DateField(null=True, blank=True)
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField(null=True, blank=True)
     # for django-concurrency optimistic locking
     version = AutoIncVersionField()
     previous = models.OneToOneField('self', related_name='successor',
@@ -171,7 +171,7 @@ class AbstractDocument(StatusModel):
     class Meta(StatusModel.Meta):
         abstract = True
         constraints = [models.UniqueConstraint(
-            fields=('process', 'name',),
+            fields=['process_id', 'name',],
             condition=models.Q(status=1),
             name='%(class)s_name'
         ), models.CheckConstraint(
@@ -277,19 +277,6 @@ are made applicable too."""
         ordering = ('process', 'name', '-start_date')
 
 
-class ProcessManager(models.Manager):
-    """Custom manager to initialize a document at creation time"""
-    def create(self, **kwargs: Any) -> 'Process':
-        """Set an empty document for every new Process object"""
-        with transaction.atomic():
-            proc = super().create(**kwargs)
-            proc.doc = Document.objects.create(
-                process=proc, status=proc.status, name=proc.name,
-                start_date=proc.start_date, end_date=proc.end_date)
-            proc.save()
-        return proc
-
-
 class Process(StatusModel):
     name = models.SlugField(max_length=8)
     desc = models.TextField()
@@ -316,6 +303,11 @@ class Process(StatusModel):
     @transaction.atomic()
     def make_applicable(self) -> None:
         super().make_applicable()
+        if self.previous:
+            Document.objects.select_for_update().filter(
+                process=self.previous,
+            ).exclude(status=StatusModel.Status.RETIRED,
+                      ).update(process=self)
         self.doc.process = self
         self.doc.make_applicable()
 
@@ -327,8 +319,6 @@ class Process(StatusModel):
 
     def __str__(self):
         return str(self.name)
-
-    objects = ProcessManager()
 
     class Meta(StatusModel.Meta):
         verbose_name = _('Process')

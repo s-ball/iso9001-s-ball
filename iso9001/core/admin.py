@@ -74,6 +74,7 @@ class BaseStatusModelAdmin(admin.ModelAdmin):
         user = request.user
         return user.has_perm('core.is_qm')
 
+
 @admin.register(Process, PolicyAxis)
 class StatusModelAdmin(SortableAdminMixin, BaseStatusModelAdmin):
     """Use SortableAdminMixin to be able to sort processes and axes"""

@@ -75,6 +75,7 @@ class TestDocument(TestCase):
     def test_revert(self) -> None:
         """Revert an authorization"""
         proc = Process.objects.create(name='P1', desc='.')
+        proc.doc = Document.objects.create(process=proc)
         proc.doc.authorize(self.user1)
         self.assertEqual(AUTHORIZED, proc.doc.status)
         proc.doc.revert()
@@ -83,12 +84,14 @@ class TestDocument(TestCase):
     def test_wrong_revert(self) -> None:
         """Revert an authorization"""
         proc = Process.objects.create(name='P1', desc='.')
+        proc.doc = Document.objects.create(process=proc)
         with self.assertRaises(ValueError):
             proc.doc.revert()
 
     def test_make_applicable_wrong_process(self) -> None:
         """Call make_applicable while process is not"""
         proc = Process.objects.create(name='P1', desc='.')
+        proc.doc = Document.objects.create(process=proc)
         proc.doc.authorize(self.user1)
         with self.assertRaises(ValueError):
             proc.doc.make_applicable()
@@ -132,6 +135,7 @@ class TestManyDocuments(TestCase):
                                           status=APPLICABLE)
         cls.proc.doc = Document.objects.create(
             name='Process', process=cls.proc, status=APPLICABLE)
+        cls.proc.save()
         cls.doc1 = Document.objects.create(name='Doc1', process=cls.proc,
                                            status=APPLICABLE)
         cls.doc1.parents.add(cls.proc.doc)

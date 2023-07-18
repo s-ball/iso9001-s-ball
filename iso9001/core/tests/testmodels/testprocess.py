@@ -9,7 +9,7 @@ from django.test import TestCase
 from django.utils import timezone
 from concurrency.exceptions import RecordModifiedError
 from core.models import Process, User, PolicyAxis, Contribution, \
-    StatusModel
+    StatusModel, Document
 
 
 # Create your tests here.
@@ -50,6 +50,8 @@ class TestProcess(TestCase):
                                       status=StatusModel.Status.APPLICABLE)
         proc.pilots.add(self.user1)
         proc.pilots.add(self.qm)
+        proc.doc = Document.objects.create(
+            process=proc, status=StatusModel.Status.APPLICABLE)
         proc.save()
         draft = proc.build_draft()
         self.assertEqual(StatusModel.Status.DRAFT, draft.status)
@@ -59,6 +61,7 @@ class TestProcess(TestCase):
         """Make applicable a new Process model"""
         proc = Process.objects.create(name='P1',
                                       desc='Produce something')
+        proc.doc = Document.objects.create(process=proc)
         proc.doc.authorize(self.user2)
         proc.make_applicable()
         proc.refresh_from_db()
@@ -72,6 +75,7 @@ class TestProcess(TestCase):
         proc.pilots.add(self.user1)
         proc.pilots.add(self.qm)
         draft = proc.build_draft()
+        draft.doc = Document.objects.create(process=proc)
         draft.doc.authorize(self.user2)
         draft.make_applicable()
         # make applicable changed proc in database only...
@@ -84,6 +88,8 @@ class TestProcess(TestCase):
         proc = Process.objects.create(name='P1',
                                       desc='Produce something',
                                       status=StatusModel.Status.APPLICABLE)
+        proc.doc = Document.objects.create(
+            process=proc, status=StatusModel.Status.APPLICABLE)
         with self.assertRaises(ValueError):
             proc.make_applicable()
 
@@ -93,6 +99,8 @@ class TestProcess(TestCase):
                                       desc='Produce something',
                                       status=StatusModel.Status.RETIRED,
                                       end_date=timezone.now())
+        proc.doc = Document.objects.create(
+            process=proc, status=StatusModel.Status.RETIRED)
         proc.unretire()
         proc.refresh_from_db()
         self.assertIsNone(proc.end_date)
@@ -145,6 +153,10 @@ class TestStatus(TestCase):
         cls.p1 = Process.objects.create(name='P1', desc='Produce something')
         cls.p2 = Process.objects.create(name='P2', desc='Produce nothing',
                                         status=StatusModel.Status.APPLICABLE)
+        cls.p1.doc = Document.objects.create(process=cls.p1)
+        cls.p2.doc = Document.objects.create(
+            process=cls.p2, status=StatusModel.Status.APPLICABLE,
+        )
 
     def test_no_two_applicable(self) -> None:
         """Try to create an applicable copy"""
@@ -210,6 +222,10 @@ class TestChanges(TestCase):
         cls.p1 = Process.objects.create(name='P1', desc='Produce something')
         cls.p2 = Process.objects.create(name='P2', desc='Produce nothing',
                                         status=StatusModel.Status.APPLICABLE)
+        cls.p1.doc = Document.objects.create(process=cls.p1)
+        cls.p2.doc = Document.objects.create(
+            process=cls.p2, status=StatusModel.Status.APPLICABLE,
+        )
 
     def test_draft_change(self) -> None:
         """Ensures that a draft process can be changed"""
@@ -261,6 +277,7 @@ class TestOptimisticLocking(TestCase):
         """Install 1 process"""
         cls.proc = Process.objects.create(name='P1',
                                           desc='Produce something')
+        cls.proc.doc = Document.objects.create(process=cls.proc)
 
     def test_version_inc(self) -> None:
         """Ensure that version number is increasing"""

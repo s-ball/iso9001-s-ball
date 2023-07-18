@@ -8,7 +8,7 @@ from django.core.files.storage.memory import InMemoryStorage
 from django.core.files.base import ContentFile
 from django.conf import settings
 
-from core.models import Process, User
+from core.models import Process, User, Document
 
 
 class DefaultStorageTest(TestCase):
@@ -55,7 +55,7 @@ class StorageTest(TestCase):
         pdf = newfile('docs/foo.txt', 'foo')
         admin = User.objects.create_superuser('admin')
         proc = Process.objects.create(name='P1', desc='.')
-        proc.doc.pdf = pdf
+        proc.doc = Document.objects.create(process=proc, pdf=pdf)
         self.assertTrue(proc.doc.pdf)
         proc.doc.authorize(admin)
         self.assertEqual(admin, proc.doc.autority)
@@ -64,6 +64,7 @@ class StorageTest(TestCase):
         """Ensure that authorizing a document with no pdf file raises"""
         admin = User.objects.create_superuser('admin')
         proc = Process.objects.create(name='P1', desc='.')
+        proc.doc = Document.objects.create(process=proc)
         self.assertFalse(proc.doc.pdf)
         with self.assertRaises(ValueError):
             proc.doc.authorize(admin)
