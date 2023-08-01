@@ -27,9 +27,10 @@ class BaseStatusModelAdmin(admin.ModelAdmin):
         obj: StatusModel
         count = 0
         for obj in queryset.filter(status=self.pre_applicable_status):
-            obj.make_applicable()
-            self.log_change(request, obj, "made applicable")
-            count += 1
+            if self.has_status_permission(request, obj):
+                obj.make_applicable()
+                self.log_change(request, obj, "made applicable")
+                count += 1
         self.message_user(request, ngettext(
             '{count} object was made applicable',
             '{count} objects were made applicable',
@@ -43,9 +44,10 @@ class BaseStatusModelAdmin(admin.ModelAdmin):
         obj: StatusModel
         count = 0
         for obj in queryset.filter(status=StatusModel.Status.APPLICABLE):
-            draft = obj.build_draft()
-            self.log_addition(request, draft, "created as draft")
-            count += 1
+            if self.has_status_permission(request, obj):
+                draft = obj.build_draft()
+                self.log_addition(request, draft, "created as draft")
+                count += 1
         self.message_user(request, ngettext(
             '{count} draft object was created',
             '{count} draft objects were created',
@@ -69,7 +71,8 @@ class BaseStatusModelAdmin(admin.ModelAdmin):
             ).format(count=count),
             messages.SUCCESS if count > 0 else messages.WARNING)
 
-    def has_status_permission(self, request: HttpRequest) -> bool:
+    def has_status_permission(self, request: HttpRequest,
+                              obj: Any = None) -> bool:
         """Only Quality Manager can change status of objects"""
         user = request.user
         return user.has_perm('core.is_qm')
@@ -112,15 +115,19 @@ class DocumentAdmin(BaseStatusModelAdmin):
     """Custom admin class to handle authorizations"""
     pre_applicable_status = StatusModel.Status.AUTHORIZED
 
-    @admin.action(description=_("Authorize"), permissions=['status'])
-    def authorize(self, request, queryset):
+    @admin.action(description=_("Authorize"), permissions=['authorize'])
+    def authorize(self, request: HttpRequest, queryset):
         """Bump draft documents to authorized status"""
         obj: Document
         count = 0
+        is_qm = request.user.has_perm('core.is_qm')
         for obj in queryset.filter(status=StatusModel.Status.DRAFT):
-            obj.authorize(request.user)
-            self.log_change(request, obj, "authorized")
-            count += 1
+            if is_qm or (obj != obj.process.doc and
+                         request.user.process_set.filter(
+                    pk=obj.process.pk).exists()):
+                obj.authorize(request.user)
+                self.log_change(request, obj, "authorized")
+                count += 1
         self.message_user(request, ngettext(
             '{count} object was authorized',
             '{count} objects were authorized',
@@ -136,3 +143,28 @@ class DocumentAdmin(BaseStatusModelAdmin):
     actions = ['make_applicable', 'build_draft', 'retire', 'authorize']
     list_display = ['__str__', 'status', 'process_status',
                     'start_date', 'end_date']
+
+    def has_change_permission(self, request: HttpRequest,
+                              obj: Document = None) -> bool:
+        return super().has_change_permission(request, obj) or (
+            obj and obj.process.pilots.filter(pk=request.user.pk).exists()
+        )
+
+    def has_authorize_permission(self, request: HttpRequest,
+                                 obj: Document = None) -> bool:
+        return (request.user.has_perm('core.is_qm') or
+                request.user.process_set.exists())
+    
+    def has_status_permission(self, request: HttpRequest,
+                              obj: Document = None) -> bool:
+        status_perm = super().has_status_permission(request)
+        if obj is None:
+            return status_perm
+        elif status_perm:
+            return True
+        elif obj.process.doc != obj:
+            return request.user.process_set.filter(pk=obj.process.pk).exists()
+        else:
+            return False
+
+        
